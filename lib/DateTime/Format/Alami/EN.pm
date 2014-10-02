@@ -31,3 +31,6 @@ sub p_dur_later { "<o_dur> (?:later)" }
 
 1;
 # ABSTRACT: Parse human date/time expression (English)
+
+=for Pod::Coverage ^([aopw]_.+)$
+

@@ -33,3 +33,6 @@ sub p_dur_later { "<o_dur> (?:(?:(?:yang|yg) )?akan (?:datang|dtg)|yad|lagi|lg)"
 
 1;
 # ABSTRACT: Parse human date/time expression (Indonesian)
+
+=for Pod::Coverage ^([aopw]_.+)$
+

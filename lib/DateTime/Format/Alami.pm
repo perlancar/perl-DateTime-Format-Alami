@@ -1,5 +1,8 @@
 package DateTime::Format::Alami;
 
+# DATE
+# VERSION
+
 use 5.010001;
 use strict;
 use warnings;
@@ -164,6 +167,8 @@ sub a_dur_later {
 1;
 # ABSTRACT: Parse human date/time expression (base class)
 
+=for Pod::Coverage ^([aopw]_.+)$
+
 =head1 SYNOPSIS
 
 Use English:
@@ -206,6 +211,18 @@ elsewhere, see L</"SEE ALSO">.
 =head1 ADDING A NEW HUMAN LANGUAGE
 
 TBD
+
+
+=head1 METHODS
+
+=head2 new => obj
+
+Constructor. You actually must instantiate subclass instead.
+
+=head2 parse_datetime($str) => obj
+
+Parse date/time expression in C<$str> and return L<DateTime> object. Return
+undef if expression cannot be parsed.
 
 
 =head1 SEE ALSO
