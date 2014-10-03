@@ -225,6 +225,13 @@ Parse date/time expression in C<$str> and return L<DateTime> object. Return
 undef if expression cannot be parsed.
 
 
+=head1 FAQ
+
+=head2 What does "alami" mean?
+
+It is an Indonesian word, meaning "natural".
+
+
 =head1 SEE ALSO
 
 =head2 Similar modules on CPAN
