@@ -1,5 +1,12 @@
 Revision history for DateTime-Format-Alami
 
+0.03    2014-10-03 (PERLANCAR)
+
+        - No functional changes.
+
+        - [build] Forgot to precompute $MAPS.
+
+
 0.02    2014-10-03 (PERLANCAR)
 
         - Add FAQ item about the name.
