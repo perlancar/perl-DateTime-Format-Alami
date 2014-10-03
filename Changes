@@ -1,5 +1,12 @@
 Revision history for DateTime-Format-Alami
 
+0.05    2014-10-03 (PERLANCAR)
+
+        - No functional changes.
+
+        - Some POD rewording.
+
+
 0.04    2014-10-03 (PERLANCAR)
 
         - Use /o modifier for faster speed.
