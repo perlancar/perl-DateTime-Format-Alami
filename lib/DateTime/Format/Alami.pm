@@ -199,7 +199,6 @@ sub a_yesterday {
 
 sub a_date_wo_year {
     my ($self, $m) = @_;
-    use DD; dd $m;
     $self->_setif_now;
     if (defined $m->{o_monthint}) {
         $self->{_dt}->set_month($m->{o_monthint});

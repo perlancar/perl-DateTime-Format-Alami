@@ -1,5 +1,12 @@
 Revision history for DateTime-Format-Alami
 
+0.02    2014-10-03 (PERLANCAR)
+
+        - Add FAQ item about the name.
+
+        - Add pattern: date_wo_year (date without year), e.g. May 28, 5/28.
+
+
 0.01    2014-10-02 (PERLANCAR)
 
         - First release.
