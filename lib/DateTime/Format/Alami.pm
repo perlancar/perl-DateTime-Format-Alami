@@ -8,6 +8,8 @@ use strict;
 use warnings;
 use experimental 'smartmatch';
 
+my @shortmons = qw(jan feb mar apr may jun jul aug sep oct nov dec);
+
 # must be overriden
 sub o_num       {}
 sub _parse_num  {}
@@ -44,6 +46,21 @@ sub new {
         }
         ${"$class\::RE"} = join("|", sort {length($b)<=>length($a)} @pats);
     }
+    unless (${"$class\::MAPS"}) {
+        my $maps = {};
+        # month names -> num
+        {
+            my $i = 0;
+            for my $m (@shortmons) {
+                ++$i;
+                my $meth = "w_$m";
+                for (@{ $self->$meth }) {
+                    $maps->{months}{$_} = $i;
+                }
+            }
+        }
+        ${"$class\::MAPS"} = $maps;
+    }
     $self;
 }
 
@@ -64,6 +81,18 @@ sub parse_datetime {
     $self->{_dt};
 }
 
+sub o_dayint { "(?:[12][0-9]|3[01]|0?[1-9])" }
+
+sub o_monthint { "(?:0?[1-9]|1[012])" }
+
+sub o_monthname {
+    my $self = shift;
+    "(?:" . join(
+        "|",
+        (map {my $meth="w_$_"; @{ $self->$meth }} @shortmons)
+    ) . ")";
+}
+
 sub o_durwords  {
     my $self = shift;
     "(?:" . join(
@@ -76,6 +105,19 @@ sub o_durwords  {
 sub o_dur {
     my $self = shift;
     "(?:(" . $self->o_num . " ?" . $self->o_durwords . " ?)+)";
+}
+
+# durations less than a day
+sub o_timedurwords  {
+    my $self = shift;
+    "(?:" . join(
+        "|",
+        @{ $self->w_hour }, @{ $self->w_minute }, @{ $self->w_second },
+    ) . ")";
+}
+sub o_timedur {
+    my $self = shift;
+    "(?:(" . $self->o_num . " ?" . $self->o_timedurwords . " ?)+)";
 }
 
 sub _parse_dur {
@@ -144,10 +186,32 @@ sub a_today {
     $self->_setif_today;
 }
 
+sub a_timedur_today {
+    my $self = shift;
+    $self->_setif_today;
+}
+
 sub a_yesterday {
     my $self = shift;
     $self->_setif_today;
     $self->{_dt}->subtract(days => 1);
+}
+
+sub a_date_wo_year {
+    my ($self, $m) = @_;
+    use DD; dd $m;
+    $self->_setif_now;
+    if (defined $m->{o_monthint}) {
+        $self->{_dt}->set_month($m->{o_monthint});
+    }
+    if (defined $m->{o_monthname}) {
+        no strict 'refs';
+        my $maps = ${ ref($self) . '::MAPS' };
+        $self->{_dt}->set_month($maps->{months}{$m->{o_monthname}});
+    }
+    if (defined $m->{o_dayint}) {
+        $self->{_dt}->set_day($m->{o_dayint});
+    }
 }
 
 sub a_dur_ago {
@@ -206,6 +270,16 @@ human language that you want to parse.
 
 There are already some other DateTime human language parsers on CPAN and
 elsewhere, see L</"SEE ALSO">.
+
+List of known date/time expressions:
+
+ (just|right)? now
+ today
+ tommorow
+ yesterday
+ 1 year 2 months 3 weeks 4 days 5 hours 6 minutes 7 seconds (ago|later)
+
+List of recognized duration expressions:
 
 
 =head1 ADDING A NEW HUMAN LANGUAGE
