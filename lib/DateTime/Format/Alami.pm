@@ -69,7 +69,7 @@ sub parse_datetime {
 
     undef $self->{_dt};
     no strict 'refs';
-    $str =~ ${ ref($self) . '::RE' } or return undef;
+    $str =~ /${ ref($self) . '::RE' }/o or return undef;
     my %m = %+;
     for (keys %m) {
         if (/^p_(.+)/) {
