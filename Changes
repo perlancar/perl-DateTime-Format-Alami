@@ -1,5 +1,12 @@
 Revision history for DateTime-Format-Alami
 
+0.04    2014-10-03 (PERLANCAR)
+
+        - Use /o modifier for faster speed.
+
+        - Rebuild using updated modules to create more compact $RE & $MAPS.
+
+
 0.03    2014-10-03 (PERLANCAR)
 
         - No functional changes.
