@@ -127,7 +127,7 @@ sub _parse_dur {
     unless ($self->{_cache_re_parse_dur}) {
         my $o_num = $self->o_num;
         my $o_dw  = $self->o_durwords;
-        $self->{_cache_re_parse_dur} = qr/($o_num) ?($o_dw)/;
+        $self->{_cache_re_parse_dur} = '($o_num) ?($o_dw)';
     }
     unless ($self->{_cache_w_second}) {
         $self->{_cache_w_second} = $self->w_second;
@@ -138,7 +138,7 @@ sub _parse_dur {
         $self->{_cache_w_month}  = $self->w_month;
         $self->{_cache_w_year}   = $self->w_year;
     }
-    while ($str =~ /$self->{_cache_re_parse_dur}/g) {
+    while ($str =~ /$self->{_cache_re_parse_dur}/go) {
         my ($n, $unit) = ($1, $2);
         $n = $self->_parse_num($n);
         if ($unit ~~ $self->{_cache_w_second}) {
