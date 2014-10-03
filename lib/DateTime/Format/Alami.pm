@@ -271,16 +271,6 @@ human language that you want to parse.
 There are already some other DateTime human language parsers on CPAN and
 elsewhere, see L</"SEE ALSO">.
 
-List of known date/time expressions:
-
- (just|right)? now
- today
- tommorow
- yesterday
- 1 year 2 months 3 weeks 4 days 5 hours 6 minutes 7 seconds (ago|later)
-
-List of recognized duration expressions:
-
 
 =head1 ADDING A NEW HUMAN LANGUAGE
 

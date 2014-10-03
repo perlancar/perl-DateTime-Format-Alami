@@ -49,3 +49,16 @@ sub p_dur_later    { "<o_dur> (?:later)" }
 # ABSTRACT: Parse human date/time expression (English)
 
 =for Pod::Coverage ^([aopw]_.+)$
+
+=head1 DESCRIPTION
+
+List of known date/time expressions:
+
+ (just|right)? now
+ today|this day
+ tommorow
+ yesterday
+ 1 year 2 months 3 weeks 4 days 5 hours 6 minutes 7 seconds (ago|later)
+ may 28, 5/28
+
+List of recognized duration expressions:

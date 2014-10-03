@@ -53,3 +53,16 @@ sub p_dur_later    { "<o_dur> (?:(?:(?:yang|yg) )?akan (?:datang|dtg)|yad|lagi|l
 # ABSTRACT: Parse human date/time expression (Indonesian)
 
 =for Pod::Coverage ^([aopw]_.+)$
+
+=head1 DESCRIPTION
+
+List of known date/time expressions:
+
+ sekarang|saat ini
+ hari ini
+ besok
+ kemarin
+ 1 tahun 2 bulan 3 minggu 4 hari 5 jam 6 menit 7 detik (lalu|nanti|yang akan datang)
+ 28 mei, 28/5
+
+List of recognized duration expressions:
