@@ -256,8 +256,8 @@ use Indonesian:
 B<EARLY RELEASE: PROOF OF CONCEPT ONLY AND VERY VERY INCOMPLETE.>
 
 This class parses human/natural date/time string and returns DateTime object.
-Currently it supports English and Indonesian. It is meant to be simple to
-add support for other human languages.
+Currently it supports English and Indonesian. The goal of this module is to make
+it easier to add support for other human languages.
 
 It works by matching date string with a bunch of regex patterns (assembled from
 C<p_*> methods, e.g. C<p_today>, C<p_dur_ago>, C<p_dur_later>, and so on). If a
@@ -299,9 +299,9 @@ It is an Indonesian word, meaning "natural".
 
 =head2 Similar modules on CPAN
 
-L<DateTime::Format::Natural>. Translating to a language other than English looks
-very complex. This is indicated by the lack of support for non-English
-languages.
+L<DateTime::Format::Natural>. You probably want to use this instead, unless you
+want something other than English. I did try to create an Indonesian translation
+for this module a few years ago, but gave up. Perhaps I make another attempt.
 
 =head2 Other modules on CPAN
 
