@@ -4,12 +4,12 @@ package DateTime::Format::Alami::ID;
 # VERSION
 
 use 5.010001;
-use strict;
+use strict 'subs', 'vars';
 use warnings;
 use parent qw(DateTime::Format::Alami);
 
-our $RE;   # PRECOMPUTE
-our $MAPS; # PRECOMPUTE
+our $RE   = do { DateTime::Format::Alami::ID->new; $DateTime::Format::Alami::ID::RE   }; # PRECOMPUTE
+our $MAPS = do { DateTime::Format::Alami::ID->new; $DateTime::Format::Alami::ID::MAPS }; # PRECOMPUTE
 
 # XXX relative day reference -> yesterday | today | tomorrow (-1, 0, 1)
 # XXX holidays -> christmas | new year | ...
@@ -41,13 +41,13 @@ sub w_oct       { ["oktober", "okt"] }
 sub w_nov       { ["november", "nopember", "nov", "nop"] }
 sub w_dec       { ["desember", "des"] }
 
-sub p_now          { "(?:saat ini|sekarang|skrg?)" }
-sub p_today        { "(?:hari ini)" }
-sub p_tomorrow     { "(?:b?esok|bsk)" }
-sub p_yesterday    { "(?:kemar[ei]n|kmrn)" }
-sub p_date_wo_year { "<o_dayint> ?<o_monthname>|<o_dayint>[ /-]<o_monthint>\\b" }
-sub p_dur_ago      { "<o_dur> (?:(?:(?:yang|yg) )?lalu|tadi|td|yll?)" }
-sub p_dur_later    { "<o_dur> (?:(?:(?:yang|yg) )?akan (?:datang|dtg)|yad|lagi|lg)" }
+sub p_now            { "(?:saat \\s+ ini|sekarang|skrg?)" }
+sub p_today          { "(?:hari \\s+ ini)" }
+sub p_tomorrow       { "(?:b?esok|bsk)" }
+sub p_yesterday      { "(?:kemar[ei]n|kmrn)" }
+sub p_date_ymd       { "(?: <o_dayint>(?:\\s+|-|/)?<o_monthname> | <o_dayint>(?:\\s+|-|/)<o_monthint>\\b )(?: \\s*[,/-]?\\s* <o_yearint>)?" }
+sub p_dur_ago        { "<o_dur> \\s+ (?:(?:(?:yang|yg) \\s+)?lalu|tadi|td|yll?)" }
+sub p_dur_later      { "<o_dur> \\s+ (?:(?:(?:yang|yg) \\s+)?akan \\s+ (?:datang|dtg)|yad|lagi|lg)" }
 
 1;
 # ABSTRACT: Parse human date/time expression (Indonesian)
@@ -64,5 +64,6 @@ List of known date/time expressions:
  kemarin
  1 tahun 2 bulan 3 minggu 4 hari 5 jam 6 menit 7 detik (lalu|nanti|yang akan datang)
  28 mei, 28/5
+ 28 mei 2016
 
 List of recognized duration expressions:

@@ -4,12 +4,12 @@ package DateTime::Format::Alami::EN;
 # VERSION
 
 use 5.010001;
-use strict;
+use strict 'subs', 'vars';
 use warnings;
 use parent qw(DateTime::Format::Alami);
 
-our $RE;   # PRECOMPUTE
-our $MAPS; # PRECOMPUTE
+our $RE   = do { DateTime::Format::Alami::EN->new; $DateTime::Format::Alami::EN::RE   }; # PRECOMPUTE
+our $MAPS = do { DateTime::Format::Alami::EN->new; $DateTime::Format::Alami::EN::MAPS }; # PRECOMPUTE
 
 use Parse::Number::EN qw(parse_number_en);
 
@@ -36,14 +36,14 @@ sub w_oct       { ["october", "oct"] }
 sub w_nov       { ["november", "nov"] }
 sub w_dec       { ["december", "dec"] }
 
-sub p_now          { "(?:(?:(?:right|just) )?now|immediately)" }
-sub p_today        { "(?:today|this day)" }
+sub p_now          { "(?:(?:(?:right|just) \\s+ )?now|immediately)" }
+sub p_today        { "(?:today|this \\s+ day)" }
 sub p_tomorrow     { "(?:tomorrow|tom)" }
 sub p_yesterday    { "(?:yesterday|yest)" }
 # XXX support cardinal
-sub p_date_wo_year { "<o_dayint> ?<o_monthname>|<o_monthname> ?<o_dayint>\\b|<o_monthint>[ /-]<o_dayint>\\b" }
-sub p_dur_ago      { "<o_dur> (?:ago)" }
-sub p_dur_later    { "<o_dur> (?:later)" }
+sub p_date_ymd     { "(?: <o_dayint> \\s* ?<o_monthname> | <o_monthname> \\s* <o_dayint>\\b|<o_monthint>[ /-]<o_dayint>\\b )(?: \\s*[,]?\\s* <o_yearint>)?" }
+sub p_dur_ago      { "<o_dur> \\s+ (?:ago)" }
+sub p_dur_later    { "<o_dur> \\s+ (?:later)" }
 
 1;
 # ABSTRACT: Parse human date/time expression (English)
@@ -58,7 +58,8 @@ List of known date/time expressions:
  today|this day
  tommorow
  yesterday
- 1 year 2 months 3 weeks 4 days 5 hours 6 minutes 7 seconds (ago|later)
  may 28, 5/28
+
+ 1 year 2 months 3 weeks 4 days 5 hours 6 minutes 7 seconds (ago|later)
 
 List of recognized duration expressions:

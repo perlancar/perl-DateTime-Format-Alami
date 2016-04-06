@@ -44,7 +44,8 @@ sub new {
             $pat =~ s/<(\w+)>/"(?P<$1>" . $self->$1 . ")"/eg;
             push @pats, "(?P<$_>$pat)";
         }
-        ${"$class\::RE"} = join("|", sort {length($b)<=>length($a)} @pats);
+        my $re = join("|", sort {length($b)<=>length($a)} @pats);
+        ${"$class\::RE"} = qr/$re/ix;
     }
     unless (${"$class\::MAPS"}) {
         my $maps = {};
@@ -75,15 +76,17 @@ sub parse_datetime {
         if (/^p_(.+)/) {
             my $meth = "a_$1";
             $self->$meth(\%m);
-            last;
+            return $self->{_dt};
         }
     }
-    $self->{_dt};
+    undef;
 }
 
 sub o_dayint { "(?:[12][0-9]|3[01]|0?[1-9])" }
 
 sub o_monthint { "(?:0?[1-9]|1[012])" }
+
+sub o_yearint { "(?:[0-9]{4})" }
 
 sub o_monthname {
     my $self = shift;
@@ -104,7 +107,7 @@ sub o_durwords  {
 }
 sub o_dur {
     my $self = shift;
-    "(?:(" . $self->o_num . " ?" . $self->o_durwords . " ?)+)";
+    "(?:(" . $self->o_num . "\\s*" . $self->o_durwords . "\\s*)+)";
 }
 
 # durations less than a day
@@ -117,17 +120,18 @@ sub o_timedurwords  {
 }
 sub o_timedur {
     my $self = shift;
-    "(?:(" . $self->o_num . " ?" . $self->o_timedurwords . " ?)+)";
+    "(?:(" . $self->o_num . "\\s*?" . $self->o_timedurwords . "\\s*)+)";
 }
 
 sub _parse_dur {
     my ($self, $str) = @_;
 
+    #say "D:dur=$str";
     my %args;
     unless ($self->{_cache_re_parse_dur}) {
         my $o_num = $self->o_num;
         my $o_dw  = $self->o_durwords;
-        $self->{_cache_re_parse_dur} = '($o_num) ?($o_dw)';
+        $self->{_cache_re_parse_dur} = qr/($o_num)\s*($o_dw)/ix;
     }
     unless ($self->{_cache_w_second}) {
         $self->{_cache_w_second} = $self->w_second;
@@ -138,7 +142,7 @@ sub _parse_dur {
         $self->{_cache_w_month}  = $self->w_month;
         $self->{_cache_w_year}   = $self->w_year;
     }
-    while ($str =~ /$self->{_cache_re_parse_dur}/go) {
+    while ($str =~ /$self->{_cache_re_parse_dur}/g) {
         my ($n, $unit) = ($1, $2);
         $n = $self->_parse_num($n);
         if ($unit ~~ $self->{_cache_w_second}) {
@@ -197,16 +201,25 @@ sub a_yesterday {
     $self->{_dt}->subtract(days => 1);
 }
 
-sub a_date_wo_year {
+sub a_tomorrow {
+    my $self = shift;
+    $self->_setif_today;
+    $self->{_dt}->add(days => 1);
+}
+
+sub a_date_ymd {
     my ($self, $m) = @_;
     $self->_setif_now;
+    if (defined $m->{o_yearint}) {
+        $self->{_dt}->set_year($m->{o_yearint});
+    }
     if (defined $m->{o_monthint}) {
         $self->{_dt}->set_month($m->{o_monthint});
     }
     if (defined $m->{o_monthname}) {
         no strict 'refs';
         my $maps = ${ ref($self) . '::MAPS' };
-        $self->{_dt}->set_month($maps->{months}{$m->{o_monthname}});
+        $self->{_dt}->set_month($maps->{months}{lc $m->{o_monthname}});
     }
     if (defined $m->{o_dayint}) {
         $self->{_dt}->set_day($m->{o_dayint});
