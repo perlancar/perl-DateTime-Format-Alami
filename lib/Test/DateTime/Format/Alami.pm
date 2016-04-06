@@ -72,3 +72,7 @@ sub test_datetime_format_alami {
 
 1;
 # ABSTRACT: Test DateTime::Format::Alami
+
+=head1 FUNCTIONS
+
+=head2 test_datetime_format_alami($class, \%tests)

@@ -1,5 +1,11 @@
 Revision history for DateTime-Format-Alami
 
+0.06    2016-04-06 (PERLANCAR)
+
+	- Use /x and /i for the whole regex, fixes/updates (a_tomorrow()
+	  was missing), add test suite.
+
+
 0.05    2014-10-03 (PERLANCAR)
 
         - No functional changes.
