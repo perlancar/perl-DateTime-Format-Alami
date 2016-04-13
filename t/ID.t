@@ -20,14 +20,14 @@ test_datetime_format_alami(
             ["sekarang" , "<CUR_YEAR>-<CUR_MONTH>-<CUR_DAY>"], # XXX test H:M:S
             ["skrg"     , "<CUR_YEAR>-<CUR_MONTH>-<CUR_DAY>"], # XXX test H:M:S
 
-            ["hari ini", "<CUR_YEAR>-<CUR_MONTH>-<CUR_DAY>"],
+            ["hari ini", "<CUR_YEAR>-<CUR_MONTH>-<CUR_DAY>T00:00:00"],
 
-            ["besok", "<YEAR_TOMORROW>-<MONTH_TOMORROW>-<DAY_TOMORROW>"],
-            ["esok" , "<YEAR_TOMORROW>-<MONTH_TOMORROW>-<DAY_TOMORROW>"],
+            ["besok", "<YEAR_TOMORROW>-<MONTH_TOMORROW>-<DAY_TOMORROW>T00:00:00"],
+            ["esok" , "<YEAR_TOMORROW>-<MONTH_TOMORROW>-<DAY_TOMORROW>T00:00:00"],
 
-            ["kemarin", "<YEAR_YESTERDAY>-<MONTH_YESTERDAY>-<DAY_YESTERDAY>"],
-            ["kemaren", "<YEAR_YESTERDAY>-<MONTH_YESTERDAY>-<DAY_YESTERDAY>"],
-            ["kmrn"   , "<YEAR_YESTERDAY>-<MONTH_YESTERDAY>-<DAY_YESTERDAY>"],
+            ["kemarin", "<YEAR_YESTERDAY>-<MONTH_YESTERDAY>-<DAY_YESTERDAY>T00:00:00"],
+            ["kemaren", "<YEAR_YESTERDAY>-<MONTH_YESTERDAY>-<DAY_YESTERDAY>T00:00:00"],
+            ["kmrn"   , "<YEAR_YESTERDAY>-<MONTH_YESTERDAY>-<DAY_YESTERDAY>T00:00:00"],
 
             ["28martian", undef], # sanity
             ["28feb" , "<CUR_YEAR>-02-28"],

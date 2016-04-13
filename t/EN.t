@@ -21,14 +21,14 @@ test_datetime_format_alami(
             ["JUST NOW"   , "<CUR_YEAR>-<CUR_MONTH>-<CUR_DAY>"], # tets case
             ["immediately", "<CUR_YEAR>-<CUR_MONTH>-<CUR_DAY>"], # XXX test H:M:S
 
-            ["today"   , "<CUR_YEAR>-<CUR_MONTH>-<CUR_DAY>"],
-            ["this day", "<CUR_YEAR>-<CUR_MONTH>-<CUR_DAY>"],
+            ["today"   , "<CUR_YEAR>-<CUR_MONTH>-<CUR_DAY>T00:00:00"],
+            ["this day", "<CUR_YEAR>-<CUR_MONTH>-<CUR_DAY>T00:00:00"],
 
-            ["tomorrow", "<YEAR_TOMORROW>-<MONTH_TOMORROW>-<DAY_TOMORROW>"],
-            ["tom"     , "<YEAR_TOMORROW>-<MONTH_TOMORROW>-<DAY_TOMORROW>"],
+            ["tomorrow", "<YEAR_TOMORROW>-<MONTH_TOMORROW>-<DAY_TOMORROW>T00:00:00"],
+            ["tom"     , "<YEAR_TOMORROW>-<MONTH_TOMORROW>-<DAY_TOMORROW>T00:00:00"],
 
-            ["yesterday", "<YEAR_YESTERDAY>-<MONTH_YESTERDAY>-<DAY_YESTERDAY>"],
-            ["yest"     , "<YEAR_YESTERDAY>-<MONTH_YESTERDAY>-<DAY_YESTERDAY>"],
+            ["yesterday", "<YEAR_YESTERDAY>-<MONTH_YESTERDAY>-<DAY_YESTERDAY>T00:00:00"],
+            ["yest"     , "<YEAR_YESTERDAY>-<MONTH_YESTERDAY>-<DAY_YESTERDAY>T00:00:00"],
 
             ["28febby", undef], # sanity
             ["28feb" , "<CUR_YEAR>-02-28"],
