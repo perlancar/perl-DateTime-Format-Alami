@@ -7,7 +7,8 @@ Revision history for DateTime-Format-Alami
           text or epoch, and can return additional information (like position of
           match, name of pattern that matches, etc).
 
-        - [Bugfix] Properly truncate DateTime to days when not needed.
+        - [Bugfix] Properly truncate DateTime to day (i.e. truncate
+          hour/minute/second to 0) when time of day is not needed.
 
         - Recognize 2-digit year.
 
