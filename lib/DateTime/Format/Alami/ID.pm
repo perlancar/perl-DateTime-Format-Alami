@@ -58,12 +58,20 @@ sub p_dur_later      { "<o_dur> \\s+ (?:(?:(?:yang|yg) \\s+)?akan \\s+ (?:datang
 
 List of known date/time expressions:
 
- sekarang|saat ini
+ sekarang
+ saat ini
+
  hari ini
  besok
  kemarin
+
  1 tahun 2 bulan 3 minggu 4 hari 5 jam 6 menit 7 detik (lalu|nanti|yang akan datang)
- 28 mei, 28/5
+
+ 28 mei
+ 28/5
+
  28 mei 2016
+ 28-5-2016
+ 28-5-16
 
 List of recognized duration expressions:

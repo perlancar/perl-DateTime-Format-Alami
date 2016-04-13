@@ -41,7 +41,11 @@ sub p_today        { "(?:today|this \\s+ day)" }
 sub p_tomorrow     { "(?:tomorrow|tom)" }
 sub p_yesterday    { "(?:yesterday|yest)" }
 # XXX support cardinal
-sub p_date_ymd     { "(?: <o_dayint> \\s* ?<o_monthname> | <o_monthname> \\s* <o_dayint>\\b|<o_monthint>[ /-]<o_dayint>\\b )(?: \\s*[,]?\\s* <o_yearint>)?" }
+sub p_date_ymd     { join(
+    "",
+    '(?: <o_dayint> \\s* ?<o_monthname> | <o_monthname> \\s* <o_dayint>\\b|<o_monthint>[ /-]<o_dayint>\\b )',
+    '(?: \\s*[,/-]?\\s* <o_yearint>)?'
+)}
 sub p_dur_ago      { "<o_dur> \\s+ (?:ago)" }
 sub p_dur_later    { "<o_dur> \\s+ (?:later)" }
 
@@ -55,11 +59,19 @@ sub p_dur_later    { "<o_dur> \\s+ (?:later)" }
 List of known date/time expressions:
 
  (just|right)? now
+
  today|this day
  tommorow
  yesterday
- may 28, 5/28
 
  1 year 2 months 3 weeks 4 days 5 hours 6 minutes 7 seconds (ago|later)
+
+ may 28
+ 5/28
+
+ 28 may 2016
+ may 28, 2016
+ 5/28/2016
+ 5-28-16
 
 List of recognized duration expressions:

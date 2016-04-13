@@ -45,7 +45,7 @@ sub new {
             push @pats, "(?P<$_>$pat)";
         }
         my $re = join("|", sort {length($b)<=>length($a)} @pats);
-        ${"$class\::RE"} = qr/$re/ix;
+        ${"$class\::RE"} = qr/\b($re)\b/ix;
     }
     unless (${"$class\::MAPS"}) {
         my $maps = {};
@@ -66,11 +66,13 @@ sub new {
 }
 
 sub parse_datetime {
+    no strict 'refs';
+
     my ($self, $str) = @_;
 
     undef $self->{_dt};
     no strict 'refs';
-    $str =~ /${ ref($self) . '::RE' }/o or return undef;
+    $str =~ ${ref($self).'::RE'} or return undef;
     my %m = %+;
     for (keys %m) {
         if (/^p_(.+)/) {
@@ -86,7 +88,7 @@ sub o_dayint { "(?:[12][0-9]|3[01]|0?[1-9])" }
 
 sub o_monthint { "(?:0?[1-9]|1[012])" }
 
-sub o_yearint { "(?:[0-9]{4})" }
+sub o_yearint { "(?:[0-9]{4}|[0-9]{2})" }
 
 sub o_monthname {
     my $self = shift;
@@ -211,7 +213,14 @@ sub a_date_ymd {
     my ($self, $m) = @_;
     $self->_setif_now;
     if (defined $m->{o_yearint}) {
-        $self->{_dt}->set_year($m->{o_yearint});
+        my $year;
+        if (length($m->{o_yearint}) == 2) {
+            my $start_of_century_year = int($self->{_dt}->year / 100) * 100;
+            $year = $start_of_century_year + $m->{o_yearint};
+        } else {
+            $year = $m->{o_yearint};
+        }
+        $self->{_dt}->set_year($year);
     }
     if (defined $m->{o_monthint}) {
         $self->{_dt}->set_month($m->{o_monthint});
