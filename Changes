@@ -1,5 +1,21 @@
 Revision history for DateTime-Format-Alami
 
+0.07    2016-04-13 (PERLANCAR)
+
+        - Add options: time_zone, format, returns (like in Date::Extract). Now
+          this module can return DateTime object as well as verbatim/original
+          text or epoch, and can return additional information (like position of
+          match, name of pattern that matches, etc).
+
+        - [Bugfix] Properly truncate DateTime to days when not needed.
+
+        - Recognize 2-digit year.
+
+        - Add more sanity checks.
+
+        - [doc] Mention more related modules.
+
+
 0.06    2016-04-06 (PERLANCAR)
 
 	- Use /x and /i for the whole regex, fixes/updates (a_tomorrow()
