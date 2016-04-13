@@ -75,3 +75,10 @@ List of known date/time expressions:
  28-5-16
 
 List of recognized duration expressions:
+
+
+=head1 SEE ALSO
+
+L<DateTime::Format::Indonesian>
+
+L<Date::Extract::ID>

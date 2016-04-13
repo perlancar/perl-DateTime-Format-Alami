@@ -75,3 +75,8 @@ List of known date/time expressions:
  5-28-16
 
 List of recognized duration expressions:
+
+
+=head1 SEE ALSO
+
+L<DateTime::Format::Natural>

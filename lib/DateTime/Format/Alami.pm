@@ -68,20 +68,86 @@ sub new {
 sub parse_datetime {
     no strict 'refs';
 
-    my ($self, $str) = @_;
+    my ($self, $str, $opts) = @_;
 
-    undef $self->{_dt};
-    no strict 'refs';
-    $str =~ ${ref($self).'::RE'} or return undef;
-    my %m = %+;
-    for (keys %m) {
-        if (/^p_(.+)/) {
-            my $meth = "a_$1";
-            $self->$meth(\%m);
-            return $self->{_dt};
+    $opts //= {};
+    $opts->{format} //= 'DateTime';
+    #$opts->{prefers} //= 'nearest';
+    $opts->{returns} //= 'first';
+
+    local $self->{_time_zone} = $opts->{time_zone} if $opts->{time_zone};
+
+    my $re = ${ref($self).'::RE'};
+
+    my @res;
+    while ($str =~ /$re/go) {
+        my %m = %+;
+        push @res, {
+            verbatim => $1,
+            pos => pos($str) - length($1),
+            m => \%m,
+        };
+        last if $opts->{returns} eq 'first';
+    }
+
+    return undef unless @res;
+
+    @res = ($res[-1]) if $opts->{returns} eq 'last';
+
+    my $can_skip_calculate_dt = $opts->{format} eq 'verbatim' &&
+        $opts->{returns} =~ /\A(?:first|last|all)\z/;
+
+    for my $res (@res) {
+        for (keys %{$res->{m}}) {
+            if (/^p_(.+)/) {
+                $res->{pattern} = $1;
+                unless ($can_skip_calculate_dt) {
+                    my $meth = "a_$1";
+
+                    # reset state for a_* method
+                    undef $self->{_dt};
+                    undef $self->{_uses_time};
+
+                    $self->$meth($res->{m});
+                }
+                last;
+            }
+        }
+
+        unless ($can_skip_calculate_dt) {
+            $self->{_dt}->truncate(to => 'day') unless $self->{_uses_time};
+            $res->{DateTime} = $self->{_dt};
+            $res->{uses_time} = $self->{_uses_time} ? 1:0;
+            $res->{epoch} = $self->{_dt}->epoch if
+                $opts->{format} eq 'combined' || $opts->{format} eq 'epoch';
         }
     }
-    undef;
+
+    if ($opts->{returns} =~ /\A(?:all_cron|earliest|latest)\z/) {
+        # sort chronologically, note that by this time the DateTime module
+        # should already have been loaded
+        @res = sort {
+            DateTime->compare($a->{DateTime}, $b->{DateTime})
+        } @res;
+    }
+
+    if ($opts->{format} eq 'DateTime') {
+        @res = map { $_->{DateTime} } @res;
+    } elsif ($opts->{format} eq 'epoch') {
+        @res = map { $_->{epoch} } @res;
+    } elsif ($opts->{format} eq 'verbatim') {
+        @res = map { $_->{verbatim} } @res;
+    }
+
+    if ($opts->{returns} =~ /\A(?:all|all_cron)\z/) {
+        return \@res;
+    } elsif ($opts->{returns} =~ /\A(?:first|earliest)\z/) {
+        return $res[0];
+    } elsif ($opts->{returns} =~ /\A(?:last|latest)\z/) {
+        return $res[-1];
+    } else {
+        die "Unknown returns option '$opts->{returns}'";
+    }
 }
 
 sub o_dayint { "(?:[12][0-9]|3[01]|0?[1-9])" }
@@ -149,10 +215,13 @@ sub _parse_dur {
         $n = $self->_parse_num($n);
         if ($unit ~~ $self->{_cache_w_second}) {
             $args{seconds} = $n;
+            $self->{_uses_time} = 1;
         } elsif ($unit ~~ $self->{_cache_w_minute}) {
             $args{minutes} = $n;
+            $self->{_uses_time} = 1;
         } elsif ($unit ~~ $self->{_cache_w_hour}) {
             $args{hours} = $n;
+            $self->{_uses_time} = 1;
         } elsif ($unit ~~ $self->{_cache_w_day}) {
             $args{days} = $n;
         } elsif ($unit ~~ $self->{_cache_w_week}) {
@@ -170,7 +239,9 @@ sub _setif_now {
     my $self = shift;
     unless ($self->{_dt}) {
         require DateTime;
-        $self->{_dt} = DateTime->now;
+        $self->{_dt} = DateTime->now(
+            (time_zone => $self->{_time_zone}) x !!defined($self->{_time_zone}),
+        );
     }
 }
 
@@ -178,13 +249,16 @@ sub _setif_today {
     my $self = shift;
     unless ($self->{_dt}) {
         require DateTime;
-        $self->{_dt} = DateTime->today;
+        $self->{_dt} = DateTime->today(
+            (time_zone => $self->{_time_zone}) x !!defined($self->{_time_zone}),
+        );
     }
 }
 
 sub a_now {
     my $self = shift;
     $self->_setif_now;
+    $self->{_uses_time} = 1;
 }
 
 sub a_today {
@@ -304,10 +378,62 @@ TBD
 
 Constructor. You actually must instantiate subclass instead.
 
-=head2 parse_datetime($str) => obj
+=head2 parse_datetime($str[ , \%opts ]) => obj
 
-Parse date/time expression in C<$str> and return L<DateTime> object. Return
-undef if expression cannot be parsed.
+Parse/extract date/time expression in C<$str>. Return undef if expression cannot
+be parsed. Otherwise return L<DateTime> object (or string/number if C<format>
+option is C<verbatim>/C<epoch>, or hash if C<format> option is C<combined>) or
+array of objects/strings/numbers (if C<returns> option is C<all>/C<all_cron>).
+
+Known options:
+
+=over
+
+=item * time_zone => str
+
+Will be passed to DateTime constructor.
+
+=item * format => str (DateTime|verbatim|epoch|combined)
+
+The default is C<DateTime>, which will return DateTime object. Other choices
+include C<verbatim> (returns the original text), C<epoch> (returns Unix
+timestamp), C<combined> (returns a hash containing keys like C<DateTime>,
+C<verbatim>, C<epoch>, and other extra information: C<pos> [position of pattern
+in the string], C<pattern> [pattern name], C<m> [raw named capture groups],
+C<uses_time> [whether the date involves time of day]).
+
+You might think that choosing C<epoch> could avoid the overhead of DateTime, but
+actually you can't since DateTime is used as the primary format during parsing.
+The epoch is retrieved from the DateTime object using the C<epoch> method.
+
+But if you choose C<verbatim>, you I<can> avoid the overhead of DateTime (as
+long as you set C<returns> to C<first>, C<last>, or C<all>).
+
+=item * prefers => str (nearest|future|past)
+
+NOT YET IMPLEMENTED.
+
+This option decides what happens when an ambiguous date appears in the input.
+For example, "Friday" may refer to any number of Fridays. Possible choices are:
+C<nearest> (prefer the nearest date, the default), C<future> (prefer the closest
+future date), C<past> (prefer the closest past date).
+
+=item * returns => str (first|last|earliest|latest|all|all_cron)
+
+If the text has multiple possible dates, then this argument determines which
+date will be returned. Possible choices are: C<first> (return the first date
+found in the string, the default), C<last> (return the final date found in the
+string), C<earliest> (return the date found in the string that chronologically
+precedes any other date in the string), C<latest> (return the date found in the
+string that chronologically follows any other date in the string), C<all>
+(return all dates found in the string, in the order they were found in the
+string), C<all_cron> (return all dates found in the string, in chronological
+order).
+
+When C<all> or C<all_cron> is chosen, function will return array(ref) of results
+instead of a single result, even if there is only a single actual result.
+
+=back
 
 
 =head1 FAQ
@@ -321,9 +447,16 @@ It is an Indonesian word, meaning "natural".
 
 =head2 Similar modules on CPAN
 
-L<DateTime::Format::Natural>. You probably want to use this instead, unless you
-want something other than English. I did try to create an Indonesian translation
-for this module a few years ago, but gave up. Perhaps I make another attempt.
+L<Date::Extract>. DateTime::Format::Alami has some features of Date::Extract so
+it can be used to replace Date::Extract.
+
+For Indonesian: L<DateTime::Format::Indonesian>, L<Date::Extract::ID> (currently
+this module uses DateTime::Format::Alami as its backend).
+
+For English: L<DateTime::Format::Natural>. You probably want to use this
+instead, unless you want something other than English. I did try to create an
+Indonesian translation for this module a few years ago, but gave up. Perhaps I
+should make another attempt.
 
 =head2 Other modules on CPAN
 
