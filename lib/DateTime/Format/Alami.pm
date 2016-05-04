@@ -296,6 +296,9 @@ sub a_date_ymd {
         }
         $self->{_dt}->set_year($year);
     }
+    if (defined $m->{o_dayint}) {
+        $self->{_dt}->set_day($m->{o_dayint});
+    }
     if (defined $m->{o_monthint}) {
         $self->{_dt}->set_month($m->{o_monthint});
     }
@@ -303,9 +306,6 @@ sub a_date_ymd {
         no strict 'refs';
         my $maps = ${ ref($self) . '::MAPS' };
         $self->{_dt}->set_month($maps->{months}{lc $m->{o_monthname}});
-    }
-    if (defined $m->{o_dayint}) {
-        $self->{_dt}->set_day($m->{o_dayint});
     }
 }
 
