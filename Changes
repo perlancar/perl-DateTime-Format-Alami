@@ -1,5 +1,13 @@
 Revision history for DateTime-Format-Alami
 
+0.08    2016-05-04 (PERLANCAR)
+
+	- [Bugfix] Fix ordering of set_month() and set_day(), e.g. when day
+	  is 30 we cannot set month to February [RT#114108].
+
+	- [Test] Enable testing of H:M:D being truncated to 0 when unnecessary.
+
+
 0.07    2016-04-13 (PERLANCAR)
 
         - Add options: time_zone, format, returns (like in Date::Extract). Now
