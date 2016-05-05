@@ -1,5 +1,12 @@
 Revision history for DateTime-Format-Alami
 
+0.09    2016-05-05 (PERLANCAR)
+
+	- No functional changes.
+
+	- [dist] Bump prereq Parse::Number::ID to 0.06 [RT#114165].
+
+
 0.08    2016-05-04 (PERLANCAR)
 
 	- [Bugfix] Fix ordering of set_month() and set_day(), e.g. when day
