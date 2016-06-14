@@ -6,7 +6,6 @@ package DateTime::Format::Alami;
 use 5.010001;
 use strict;
 use warnings;
-use experimental 'smartmatch';
 
 my @shortmons = qw(jan feb mar apr may jun jul aug sep oct nov dec);
 
@@ -192,6 +191,8 @@ sub o_timedur {
 }
 
 sub _parse_dur {
+    use experimental 'smartmatch';
+
     my ($self, $str) = @_;
 
     #say "D:dur=$str";
