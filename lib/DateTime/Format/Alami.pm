@@ -6,29 +6,42 @@ package DateTime::Format::Alami;
 use 5.010001;
 use strict;
 use warnings;
+use Log::Any::IfLOG '$log';
 
-my @shortmons = qw(jan feb mar apr may jun jul aug sep oct nov dec);
+use Role::Tiny;
 
-# must be overriden
-sub o_num       {}
-sub _parse_num  {}
-sub w_year   {}
-sub w_month  {}
-sub w_week   {}
-sub w_day    {}
-sub w_minute {}
-sub w_second {}
-sub p_now       {}
-sub p_today     {}
-sub p_tomorrow  {}
-sub p_yesterday {}
-sub p_dur_ago   {}
-sub p_dur_later {}
+my @short_mons = qw(jan feb mar apr may jun jul aug sep oct nov dec);
 
+requires 'o_num';
+requires '_parse_num';
+
+requires 'w_year';
+requires 'w_month';
+requires 'w_week';
+requires 'w_day';
+requires 'w_hour';
+requires 'w_minute';
+requires 'w_second';
+
+requires "w_$_" for @short_mons;
+
+requires 'p_now';
+requires 'p_today';
+#requires 'p_timedur_today';
+requires 'p_yesterday';
+requires 'p_tomorrow';
+requires 'p_dateymd';
+#requires 'p_date';
+requires 'p_dur_ago';
+requires 'p_dur_later';
+requires 'p_time';
+#requires 'p_date_time';
+
+our $o;
 sub new {
     my $class = shift;
     if ($class eq __PACKAGE__) {
-        die "Use one of my subclasses instead, ".
+        die "Use one of the DateTime::Format::Alami::* instead, ".
             "e.g. DateTime::Format::Alami::EN";
     }
     my $self = bless {}, $class;
@@ -36,22 +49,45 @@ sub new {
     unless (${"$class\::RE"}) {
         require Class::Inspector;
         my $meths = Class::Inspector->methods($class);
-        my @pats;
-        for (@$meths) {
-            next unless /^p_/;
-            my $pat = $self->$_;
-            $pat =~ s/<(\w+)>/"(?P<$1>" . $self->$1 . ")"/eg;
-            push @pats, "(?P<$_>$pat)";
+        my %pats;  # key = "p_..."
+        my %pat_lengths; # key = "p_..."
+        for my $meth (@$meths) {
+            next unless $meth =~ /^[op]_/;
+            my $pat = $self->$meth;
+            $pat =~ s/<(\w+)>/(?P<$1>(?\&$1))/g;
+            my $action_meth = $meth; $action_meth =~ s/^p_/a_/;
+            $pat = join(
+                "",
+                "(?P<$meth>", ($meth =~ /^p_/ ? "\\b $pat \\b" : $pat), ")",
+                ($meth =~ /^p_/ ? "(?{ \$o->$action_meth })" : ""),
+            );
+            $pats{$meth}  = $pat;
+            $pat_lengths{$meth} = length($pat);
         }
-        my $re = join("|", sort {length($b)<=>length($a)} @pats);
-        ${"$class\::RE"} = qr/\b($re)\b/ix;
+        my @pat_names =
+            sort { $pat_lengths{$b} <=> $pat_lengths{$a} } keys %pats;
+        my $nl = $ENV{DEBUG} ? "\n" : "";
+        my $re = join(
+            "",
+            #"(?&top)", $nl,
+            "(?&p_dateymd)", $nl, # testing
+            "(?(DEFINE)", $nl,
+            "(?<top>", join("|",
+                            map {"(?&$_)"} grep {/^p_/} @pat_names), ")$nl",
+            (map { "(?<$_> $pats{$_})$nl" } @pat_names),
+            ")", # end of define
+        );
+        {
+            use re 'eval';
+            ${"$class\::RE"} = qr/$re/ix;
+        }
     }
     unless (${"$class\::MAPS"}) {
         my $maps = {};
         # month names -> num
         {
             my $i = 0;
-            for my $m (@shortmons) {
+            for my $m (@short_mons) {
                 ++$i;
                 my $meth = "w_$m";
                 for (@{ $self->$meth }) {
@@ -81,6 +117,7 @@ sub parse_datetime {
     my @res;
     while ($str =~ /$re/go) {
         my %m = %+;
+        $log->tracef("match=%s", \%m);
         push @res, {
             verbatim => $1,
             pos => pos($str) - length($1),
@@ -155,11 +192,17 @@ sub o_monthint { "(?:0?[1-9]|1[012])" }
 
 sub o_yearint { "(?:[0-9]{4}|[0-9]{2})" }
 
+sub o_hour { "(?:[0-9][0-9]?)" }
+
+sub o_minute { "(?:[0-9][0-9]?)" }
+
+sub o_second { "(?:[0-9][0-9]?)" }
+
 sub o_monthname {
     my $self = shift;
     "(?:" . join(
         "|",
-        (map {my $meth="w_$_"; @{ $self->$meth }} @shortmons)
+        (map {my $meth="w_$_"; @{ $self->$meth }} @short_mons)
     ) . ")";
 }
 
@@ -172,6 +215,7 @@ sub o_durwords  {
         @{ $self->w_hour }, @{ $self->w_minute }, @{ $self->w_second },
     ) . ")";
 }
+
 sub o_dur {
     my $self = shift;
     "(?:(" . $self->o_num . "\\s*" . $self->o_durwords . "\\s*)+)";
@@ -185,6 +229,7 @@ sub o_timedurwords  {
         @{ $self->w_hour }, @{ $self->w_minute }, @{ $self->w_second },
     ) . ")";
 }
+
 sub o_timedur {
     my $self = shift;
     "(?:(" . $self->o_num . "\\s*?" . $self->o_timedurwords . "\\s*)+)";
@@ -233,6 +278,7 @@ sub _parse_dur {
             $args{years} = $n;
         }
     }
+    require DateTime::Duration;
     DateTime::Duration->new(%args);
 }
 
@@ -284,7 +330,7 @@ sub a_tomorrow {
     $self->{_dt}->add(days => 1);
 }
 
-sub a_date_ymd {
+sub a_dateymd {
     my ($self, $m) = @_;
     $self->_setif_now;
     if (defined $m->{o_yearint}) {
@@ -324,6 +370,20 @@ sub a_dur_later {
     $self->{_dt}->add_duration($dur);
 }
 
+sub a_time {
+    my ($self, $m) = @_;
+    $self->_setif_today;
+    $self->{_uses_time} = 1;
+    $self->{_dt}->set_hour($m->{o_hour});
+    $self->{_dt}->set_minute($m->{o_minute});
+    $self->{_dt}->set_second($m->{o_second}) if defined $m->{o_second};
+}
+
+sub a_date_time {
+    my ($self, $m) = @_;
+    use DD; dd $m;
+}
+
 1;
 # ABSTRACT: Parse human date/time expression (base class)
 
@@ -356,10 +416,18 @@ This class parses human/natural date/time string and returns DateTime object.
 Currently it supports English and Indonesian. The goal of this module is to make
 it easier to add support for other human languages.
 
-It works by matching date string with a bunch of regex patterns (assembled from
-C<p_*> methods, e.g. C<p_today>, C<p_dur_ago>, C<p_dur_later>, and so on). If a
-pattern is found, the corresponding C<a_*> method is called to compute the
-DateTime object (e.g. if C<p_today> pattern matches, C<a_today> is called).
+It works by matching date string with a bunch of regex pattern strings assembled
+from all the C<p_*> methods sorted by its length (longest first), e.g.
+C<p_today>, C<p_dur_ago>, C<p_dur_later>, and so on. The regexp pattern strings
+will be joined together using regex alternation (C<|>) and one will be picked.
+If a C<p_*> pattern is found, the corresponding C<a_*> method is called to
+compute the L<DateTime> object, e.g. if C<p_today> pattern matches, C<a_today>
+is called.
+
+There are also C<o_*> methods which also return regex pattern strings, but they
+are not assembled to become the final pattern. They are usually written to help
+assemble C<p_*> methods from smaller units. And there are also C<w_*> methods
+which return array of strings.
 
 To actually use this class, you must use one of its subclasses for each
 human language that you want to parse.

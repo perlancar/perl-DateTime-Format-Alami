@@ -41,11 +41,12 @@ sub p_today        { "(?:today|this \\s+ day)" }
 sub p_tomorrow     { "(?:tomorrow|tom)" }
 sub p_yesterday    { "(?:yesterday|yest)" }
 # XXX support cardinal
-sub p_date_ymd     { join(
+sub p_dateymd      { join(
     "",
-    '(?: <o_dayint> \\s* ?<o_monthname> | <o_monthname> \\s* <o_dayint>\\b|<o_monthint>[ /-]<o_dayint>\\b )',
+    '(?: <o_dayint> \\s* <o_monthname> | <o_monthname> \\s* <o_dayint>\\b|<o_monthint>[ /-]<o_dayint>\\b )',
     '(?: \\s*[,/-]?\\s* <o_yearint>)?'
 )}
+
 sub p_dur_ago      { "<o_dur> \\s+ (?:ago)" }
 sub p_dur_later    { "<o_dur> \\s+ (?:later)" }
 
