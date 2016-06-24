@@ -37,7 +37,7 @@ requires 'p_dur_later';
 requires 'p_time';
 #requires 'p_date_time';
 
-our $o;
+our ($m, $o);
 sub new {
     my $class = shift;
     if ($class eq __PACKAGE__) {
@@ -54,12 +54,17 @@ sub new {
         for my $meth (@$meths) {
             next unless $meth =~ /^[op]_/;
             my $pat = $self->$meth;
-            $pat =~ s/<(\w+)>/(?P<$1>(?\&$1))/g;
+            $pat =~ s/<(\w+)>/(?\&$1)/g;
             my $action_meth = $meth; $action_meth =~ s/^p_/a_/;
             $pat = join(
                 "",
-                "(?P<$meth>", ($meth =~ /^p_/ ? "\\b $pat \\b" : $pat), ")",
-                ($meth =~ /^p_/ ? "(?{ \$o->$action_meth })" : ""),
+                "(", ($meth =~ /^p_/ ? "\\b $pat \\b" : $pat), ")",
+
+                # we capture ourselves instead of relying on named capture
+                # because subpattern capture are discarded
+                "(?{ \$m->{$meth} = \$^N })",
+
+                ($meth =~ /^p_/ ? "(?{ ".($ENV{DEBUG} ? "say \"invoking $action_meth()\";" : "")."\$o->$action_meth(\$m) })" : ""),
             );
             $pats{$meth}  = $pat;
             $pat_lengths{$meth} = length($pat);
@@ -410,30 +415,70 @@ use Indonesian:
 
 =head1 DESCRIPTION
 
-B<EARLY RELEASE: PROOF OF CONCEPT ONLY AND VERY VERY INCOMPLETE.>
-
 This class parses human/natural date/time string and returns DateTime object.
 Currently it supports English and Indonesian. The goal of this module is to make
 it easier to add support for other human languages.
-
-It works by matching date string with a bunch of regex pattern strings assembled
-from all the C<p_*> methods sorted by its length (longest first), e.g.
-C<p_today>, C<p_dur_ago>, C<p_dur_later>, and so on. The regexp pattern strings
-will be joined together using regex alternation (C<|>) and one will be picked.
-If a C<p_*> pattern is found, the corresponding C<a_*> method is called to
-compute the L<DateTime> object, e.g. if C<p_today> pattern matches, C<a_today>
-is called.
-
-There are also C<o_*> methods which also return regex pattern strings, but they
-are not assembled to become the final pattern. They are usually written to help
-assemble C<p_*> methods from smaller units. And there are also C<w_*> methods
-which return array of strings.
 
 To actually use this class, you must use one of its subclasses for each
 human language that you want to parse.
 
 There are already some other DateTime human language parsers on CPAN and
 elsewhere, see L</"SEE ALSO">.
+
+
+=head1 HOW IT WORKS
+
+L<DateTime::Format::Alami> is base class. Each human language is implemented in
+a separate C<< DateTime::Format::Alami::<ISO_CODE> >> module (e.g.
+L<DateTime::Format::Alami::EN> and L<DateTime::Format::Alami::EN>) which is a
+subclass.
+
+Parsing is done using a single recursive regex (i.e. containing C<(?&NAME)> and
+C<(?(DEFINE))> patterns, see L<perlre>). This regex is composed from pieces of
+pattern strings in the C<p_*> and C<o_*> methods, to make it easier to override
+in an OO-fashion.
+
+A pattern string that is returned by the C<p_*> method is a normal regex pattern
+string that will be compiled using the /x and /i regex modifier. The pattern
+string can also refer to pattern in other C<o_*> or C<p_*> method using syntax
+C<< <o_foo> >> or C<< <p_foo> >>. Example, C<o_today> for English might be
+something like:
+
+ sub p_today { "(?: today | this \s+ day )" }
+
+Other examples:
+
+ sub p_yesterday { "(?: yesterday )" }
+
+ sub p_dateymd { join(
+     "",
+    '(?: <o_dayint> \\s* ?<o_monthname> | <o_monthname> \\s* <o_dayint>\\b|<o_monthint>[ /-]<o_dayint>\\b )',
+    '(?: \\s*[,/-]?\\s* <o_yearint>)?'
+ )}
+
+ sub o_date { "(?: <p_today>|<p_yesterday>|<p_dateymd>)" }
+
+ sub p_time { "(?: <o_hour>:<o_minute>(?:<o_second>)? \s* <o_ampm> )" }
+
+ sub p_date_time { "(?: <o_date> (?:\s+ at)? <o_time> )" }
+
+When a pattern from C<p_*> matches, a corresponding action method C<a_*> will be
+invoked. Usually the method will set or modify a DateTime object in C<<
+$self->{_dt} >>. For example, this is code for C<a_today>:
+
+ sub a_today {
+     my $self = shift;
+     $self->{_dt} = DateTime->today;
+ }
+
+The patterns from all C<p_*> methods will be combined in an alternation to form
+the final pattern.
+
+An C<o_*> pattern is just like C<p_*>, but they will not be
+combined into the final pattern and matching it won't execute a corresponding
+C<a_*> method.
+
+And there are also C<w_*> methods which return array of strings.
 
 
 =head1 ADDING A NEW HUMAN LANGUAGE
