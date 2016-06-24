@@ -33,13 +33,12 @@ subtest "format=epoch" => sub {
 
 subtest "format=combined" => sub {
     my $res = $p->parse_datetime($str, {time_zone => $tz, format=>'combined'});
-    #note explain $res;
     is(ref($res), "HASH");
     is($res->{DateTime}->ymd, "2011-06-19");
     is($res->{verbatim}, "19-6-11");
     is($res->{epoch}, 1308416400);
-    is_deeply($res->{m}, {o_dayint=>19, o_monthint=>6, o_yearint=>11, p_date_ymd=>'19-6-11'});
-    is($res->{pattern}, 'date_ymd');
+    is_deeply($res->{m}, {o_dayint=>19, o_monthint=>6, o_yearint=>11, p_dateymd=>'19-6-11'});
+    is($res->{pattern}, 'dateymd');
     is($res->{pos}, 0);
     is($res->{uses_time}, 0);
 };

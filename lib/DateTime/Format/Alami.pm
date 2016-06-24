@@ -53,6 +53,7 @@ sub new {
         my %pat_lengths; # key = "p_..."
         for my $meth (@$meths) {
             next unless $meth =~ /^[op]_/;
+            (my $patname = $meth) =~ s/^[op]_//;
             my $pat = $self->$meth;
             $pat =~ s/<(\w+)>/(?\&$1)/g;
             my $action_meth = $meth; $action_meth =~ s/^p_/a_/;
@@ -64,7 +65,7 @@ sub new {
                 # because subpattern capture are discarded
                 "(?{ \$m->{$meth} = \$^N })",
 
-                ($meth =~ /^p_/ ? "(?{ ".($ENV{DEBUG} ? "say \"invoking $action_meth()\";" : "")."\$o->$action_meth(\$m) })" : ""),
+                ($meth =~ /^p_/ ? "(?{ ".($ENV{DEBUG} ? "say \"invoking $action_meth()\";" : "")."\$o->{_pat} = \"$patname\"; \$o->$action_meth(\$m) })" : ""),
             );
             $pats{$meth}  = $pat;
             $pat_lengths{$meth} = length($pat);
@@ -74,8 +75,8 @@ sub new {
         my $nl = $ENV{DEBUG} ? "\n" : "";
         my $re = join(
             "",
-            #"(?&top)", $nl,
-            "(?&p_dateymd)", $nl, # testing
+            "(?&top)", $nl,
+            #"(?&p_dateymd)", $nl, # testing
             "(?(DEFINE)", $nl,
             "(?<top>", join("|",
                             map {"(?&$_)"} grep {/^p_/} @pat_names), ")$nl",
@@ -105,6 +106,13 @@ sub new {
     $self;
 }
 
+sub _reset {
+    my $self = shift;
+    undef $self->{_pat};
+    undef $self->{_dt};
+    undef $self->{_uses_time};
+}
+
 sub parse_datetime {
     no strict 'refs';
 
@@ -119,50 +127,30 @@ sub parse_datetime {
 
     my $re = ${ref($self).'::RE'};
 
+    $o = $self;
     my @res;
-    while ($str =~ /$re/go) {
-        my %m = %+;
-        $log->tracef("match=%s", \%m);
-        push @res, {
+    while (1) {
+        $o->_reset;
+        $m = {};
+        $str =~ /($re)/go or last;
+        $o->{_dt}->truncate(to=>'day') unless $o->{_uses_time};
+        my $res = {
             verbatim => $1,
+            pattern => $o->{_pat},
             pos => pos($str) - length($1),
-            m => \%m,
+            m => {%$m},
         };
+        $res->{uses_time} = $o->{_uses_time} ? 1:0;
+        $res->{DateTime}  = $o->{_dt};
+        $res->{epoch}     = $o->{_dt}->epoch if
+            $opts->{format} eq 'combined' || $opts->{format} eq 'epoch';
+        push @res, $res;
         last if $opts->{returns} eq 'first';
     }
 
     return undef unless @res;
 
     @res = ($res[-1]) if $opts->{returns} eq 'last';
-
-    my $can_skip_calculate_dt = $opts->{format} eq 'verbatim' &&
-        $opts->{returns} =~ /\A(?:first|last|all)\z/;
-
-    for my $res (@res) {
-        for (keys %{$res->{m}}) {
-            if (/^p_(.+)/) {
-                $res->{pattern} = $1;
-                unless ($can_skip_calculate_dt) {
-                    my $meth = "a_$1";
-
-                    # reset state for a_* method
-                    undef $self->{_dt};
-                    undef $self->{_uses_time};
-
-                    $self->$meth($res->{m});
-                }
-                last;
-            }
-        }
-
-        unless ($can_skip_calculate_dt) {
-            $self->{_dt}->truncate(to => 'day') unless $self->{_uses_time};
-            $res->{DateTime} = $self->{_dt};
-            $res->{uses_time} = $self->{_uses_time} ? 1:0;
-            $res->{epoch} = $self->{_dt}->epoch if
-                $opts->{format} eq 'combined' || $opts->{format} eq 'epoch';
-        }
-    }
 
     if ($opts->{returns} =~ /\A(?:all_cron|earliest|latest)\z/) {
         # sort chronologically, note that by this time the DateTime module
@@ -386,7 +374,6 @@ sub a_time {
 
 sub a_date_time {
     my ($self, $m) = @_;
-    use DD; dd $m;
 }
 
 1;
