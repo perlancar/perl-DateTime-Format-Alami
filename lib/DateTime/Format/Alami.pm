@@ -27,15 +27,14 @@ requires "w_$_" for @short_mons;
 
 requires 'p_now';
 requires 'p_today';
-#requires 'p_timedur_today';
 requires 'p_yesterday';
 requires 'p_tomorrow';
 requires 'p_dateymd';
-#requires 'p_date';
+requires 'o_date';
 requires 'p_dur_ago';
 requires 'p_dur_later';
 requires 'p_time';
-#requires 'p_date_time';
+requires 'p_date_time';
 
 our ($m, $o);
 sub new {
@@ -53,7 +52,6 @@ sub new {
         my %pat_lengths; # key = "p_..."
         for my $meth (@$meths) {
             next unless $meth =~ /^[op]_/;
-            (my $patname = $meth) =~ s/^[op]_//;
             my $pat = $self->$meth;
             $pat =~ s/<(\w+)>/(?\&$1)/g;
             my $action_meth = $meth; $action_meth =~ s/^p_/a_/;
@@ -63,9 +61,9 @@ sub new {
 
                 # we capture ourselves instead of relying on named capture
                 # because subpattern capture are discarded
-                "(?{ \$m->{$meth} = \$^N })",
+                "(?{ \$DateTime::Format::Alami::m->{$meth} = \$^N })",
 
-                ($meth =~ /^p_/ ? "(?{ ".($ENV{DEBUG} ? "say \"invoking $action_meth()\";" : "")."\$o->{_pat} = \"$patname\"; \$o->$action_meth(\$m) })" : ""),
+                ($meth =~ /^p_/ ? "(?{ ".($ENV{DEBUG} ? "say \"invoking $action_meth()\";" : "")."\$DateTime::Format::Alami::o->{_pat} = \"$meth\"; \$DateTime::Format::Alami::o->$action_meth(\$DateTime::Format::Alami::m) })" : ""),
             );
             $pats{$meth}  = $pat;
             $pat_lengths{$meth} = length($pat);
@@ -297,13 +295,14 @@ sub _setif_today {
 
 sub a_now {
     my $self = shift;
-    $self->_setif_now;
+    $self->{_dt} = DateTime->now;
     $self->{_uses_time} = 1;
 }
 
 sub a_today {
     my $self = shift;
-    $self->_setif_today;
+    $self->{_dt} = DateTime->today;
+    $self->{_uses_time} = 0;
 }
 
 sub a_timedur_today {

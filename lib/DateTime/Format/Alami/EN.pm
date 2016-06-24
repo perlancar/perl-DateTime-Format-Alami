@@ -4,12 +4,8 @@ package DateTime::Format::Alami::EN;
 # VERSION
 
 use 5.010001;
-use strict 'subs', 'vars';
+use strict;
 use warnings;
-use parent qw(DateTime::Format::Alami);
-
-our $RE   = do { DateTime::Format::Alami::EN->new; $DateTime::Format::Alami::EN::RE   }; # PRECOMPUTE
-our $MAPS = do { DateTime::Format::Alami::EN->new; $DateTime::Format::Alami::EN::MAPS }; # PRECOMPUTE
 
 use Parse::Number::EN qw(parse_number_en);
 
@@ -49,6 +45,22 @@ sub p_dateymd      { join(
 
 sub p_dur_ago      { "<o_dur> \\s+ (?:ago)" }
 sub p_dur_later    { "<o_dur> \\s+ (?:later)" }
+
+sub o_date         { "(?: <p_today>|<p_tomorrow>|<p_yesterday>|<p_dateymd>)" }
+sub p_time         { "(?: <o_hour>:<o_minute>(?: :<o_second>)?)" } # XXX am/pm
+sub p_date_time    { "(?:<o_date> \\s+ (?:(?:on|at) \\s+)? <p_time>)" }
+
+# the ordering is a bit weird because: we need to apply role at compile-time
+# before the precomputed $RE mentions $o & $m thus creating the package
+# DateTime::Format::Alami and this makes Role::Tiny::With complains that DT:F:A
+# is not a role. then, if we are to apply the role, we need to already declare
+# the methods required by the role.
+
+use Role::Tiny::With;
+BEGIN { with 'DateTime::Format::Alami' };
+
+our $RE   = do { DateTime::Format::Alami::EN->new; $DateTime::Format::Alami::EN::RE   }; # PRECOMPUTE
+our $MAPS = do { DateTime::Format::Alami::EN->new; $DateTime::Format::Alami::EN::MAPS }; # PRECOMPUTE
 
 1;
 # ABSTRACT: Parse human date/time expression (English)

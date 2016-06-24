@@ -4,19 +4,12 @@ package DateTime::Format::Alami::ID;
 # VERSION
 
 use 5.010001;
-use strict 'subs', 'vars';
+use strict;
 use warnings;
-
-use Role::Tiny::With;
-
-with 'DateTime::Format::Alami';
-
-our $RE   = do { DateTime::Format::Alami::ID->new; $DateTime::Format::Alami::ID::RE   }; # PRECOMPUTE
-our $MAPS = do { DateTime::Format::Alami::ID->new; $DateTime::Format::Alami::ID::MAPS }; # PRECOMPUTE
 
 # XXX relative day reference -> yesterday | today | tomorrow (-1, 0, 1)
 # XXX holidays -> christmas | new year | ...
-
+# XXX 13.00 WIB
 # XXX *se*minggu (instead of 1 minggu), etc
 
 use Parse::Number::ID qw(parse_number_id);
@@ -52,8 +45,22 @@ sub p_dateymd        { "(?: <o_dayint>(?:\\s+|-|/)?<o_monthname> | <o_dayint>(?:
 
 sub p_dur_ago        { "<o_dur> \\s+ (?:(?:(?:yang|yg) \\s+)?lalu|tadi|td|yll?)" }
 sub p_dur_later      { "<o_dur> \\s+ (?:(?:(?:yang|yg) \\s+)?akan \\s+ (?:datang|dtg)|yad|lagi|lg)" }
-sub p_time           { "(?:(?:(?:pada \\s+)? (jam|j|pukul|pkl?)\\s*)? <o_hour>:<o_minute>(?: :<o_second>)?)" }
-#sub p_date_time      { "(?:(?:<p_now>|<p_today>|<p_tomorrow>|<p_yesterday>|<p_dateymd>) \\s+ <p_time>)" }
+
+sub o_date           { "(?: <p_today>|<p_tomorrow>|<p_yesterday>|<p_dateymd>)" }
+sub p_time           { "(?: <o_hour>[:.]<o_minute>(?: [:.]<o_second>)?)" }
+sub p_date_time      { "(?:<o_date> \\s+ (?:(?:pada \\s+)? (jam|j|pukul|pkl?)\\s*)? <p_time>)" }
+
+# the ordering is a bit weird because: we need to apply role at compile-time
+# before the precomputed $RE mentions $o & $m thus creating the package
+# DateTime::Format::Alami and this makes Role::Tiny::With complains that DT:F:A
+# is not a role. then, if we are to apply the role, we need to already declare
+# the methods required by the role.
+
+use Role::Tiny::With;
+BEGIN { with 'DateTime::Format::Alami' };
+
+our $RE   = do { DateTime::Format::Alami::ID->new; $DateTime::Format::Alami::ID::RE   }; # PRECOMPUTE
+our $MAPS = do { DateTime::Format::Alami::ID->new; $DateTime::Format::Alami::ID::MAPS }; # PRECOMPUTE
 
 1;
 # ABSTRACT: Parse human date/time expression (Indonesian)
@@ -64,21 +71,32 @@ sub p_time           { "(?:(?:(?:pada \\s+)? (jam|j|pukul|pkl?)\\s*)? <o_hour>:<
 
 List of known date/time expressions:
 
+ # p_now
  sekarang
  saat ini
 
+ # p_today
  hari ini
+
+ # p_tomorrow
  besok
+
+ # p_yesterday
  kemarin
 
+ # p_dur_ago, p_dur_later
  1 tahun 2 bulan 3 minggu 4 hari 5 jam 6 menit 7 detik (lalu|nanti|yang akan datang)
 
+ # p_dateymd
  28 mei
  28/5
-
  28 mei 2016
  28-5-2016
  28-5-16
+
+ # p_date_time
+ 24 juni pk 13.00
+ 24 juni 2015 13.00
 
 List of recognized duration expressions:
 
