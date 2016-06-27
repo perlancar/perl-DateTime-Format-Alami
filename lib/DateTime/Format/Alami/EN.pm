@@ -69,25 +69,39 @@ our $MAPS = do { DateTime::Format::Alami::EN->new; $DateTime::Format::Alami::EN:
 
 =head1 DESCRIPTION
 
-List of known date/time expressions:
+List of known expressions:
 
+ # p_now
  (just|right)? now
 
+ # p_today
  today|this day
+
+ # p_tomorrow
  tommorow
+
+ # p_yesterday
  yesterday
 
+ # p_dur_ago, p_dur_later
  1 year 2 months 3 weeks 4 days 5 hours 6 minutes 7 seconds (ago|later)
 
+ # p_dateymd
  may 28
  5/28
-
  28 may 2016
  may 28, 2016
  5/28/2016
  5-28-16
 
-List of recognized duration expressions:
+ # p_time
+ 2pm
+ 3.45 am
+ (on|at)? 15:00
+
+ # p_date_time
+ june 25 2pm
+ 2016-06-25 10:00:00
 
 
 =head1 SEE ALSO

@@ -112,6 +112,7 @@ sub _reset {
 }
 
 sub parse_datetime {
+    require DateTime;
     no strict 'refs';
 
     my ($self, $str, $opts) = @_;
@@ -273,58 +274,47 @@ sub _parse_dur {
     DateTime::Duration->new(%args);
 }
 
-sub _setif_now {
+sub _now_if_unset {
     my $self = shift;
-    unless ($self->{_dt}) {
-        require DateTime;
-        $self->{_dt} = DateTime->now(
-            (time_zone => $self->{_time_zone}) x !!defined($self->{_time_zone}),
-        );
-    }
+    $self->a_now unless $self->{_dt};
 }
 
-sub _setif_today {
+sub _today_if_unset {
     my $self = shift;
-    unless ($self->{_dt}) {
-        require DateTime;
-        $self->{_dt} = DateTime->today(
-            (time_zone => $self->{_time_zone}) x !!defined($self->{_time_zone}),
-        );
-    }
+    $self->a_today unless $self->{_dt};
 }
 
 sub a_now {
     my $self = shift;
-    $self->{_dt} = DateTime->now;
+    $self->{_dt} = DateTime->now(
+        (time_zone => $self->{_time_zone}) x !!defined($self->{_time_zone}),
+    );
     $self->{_uses_time} = 1;
 }
 
 sub a_today {
     my $self = shift;
-    $self->{_dt} = DateTime->today;
+    $self->{_dt} = DateTime->today(
+        (time_zone => $self->{_time_zone}) x !!defined($self->{_time_zone}),
+    );
     $self->{_uses_time} = 0;
-}
-
-sub a_timedur_today {
-    my $self = shift;
-    $self->_setif_today;
 }
 
 sub a_yesterday {
     my $self = shift;
-    $self->_setif_today;
+    $self->a_today;
     $self->{_dt}->subtract(days => 1);
 }
 
 sub a_tomorrow {
     my $self = shift;
-    $self->_setif_today;
+    $self->a_today;
     $self->{_dt}->add(days => 1);
 }
 
 sub a_dateymd {
     my ($self, $m) = @_;
-    $self->_setif_now;
+    $self->a_today;
     if (defined $m->{o_yearint}) {
         my $year;
         if (length($m->{o_yearint}) == 2) {
@@ -350,21 +340,21 @@ sub a_dateymd {
 
 sub a_dur_ago {
     my ($self, $m) = @_;
-    $self->_setif_now;
+    $self->a_now;
     my $dur = $self->_parse_dur($m->{o_dur});
     $self->{_dt}->subtract_duration($dur);
 }
 
 sub a_dur_later {
     my ($self, $m) = @_;
-    $self->_setif_now;
+    $self->a_now;
     my $dur = $self->_parse_dur($m->{o_dur});
     $self->{_dt}->add_duration($dur);
 }
 
 sub a_time {
     my ($self, $m) = @_;
-    $self->_setif_today;
+    $self->_now_if_unset;
     $self->{_uses_time} = 1;
     $self->{_dt}->set_hour($m->{o_hour});
     $self->{_dt}->set_minute($m->{o_minute});

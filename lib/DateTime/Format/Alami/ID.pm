@@ -85,7 +85,7 @@ List of known date/time expressions:
  kemarin
 
  # p_dur_ago, p_dur_later
- 1 tahun 2 bulan 3 minggu 4 hari 5 jam 6 menit 7 detik (lalu|nanti|yang akan datang)
+ 1 tahun 2 bulan 3 minggu 4 hari 5 jam 6 menit 7 detik (lalu|lagi|nanti|yang akan datang)
 
  # p_dateymd
  28 mei
@@ -94,11 +94,13 @@ List of known date/time expressions:
  28-5-2016
  28-5-16
 
+ # p_time
+ (pukul|jam)? 10.00
+ 23:05:44
+
  # p_date_time
  24 juni pk 13.00
- 24 juni 2015 13.00
-
-List of recognized duration expressions:
+ 24 juni 2015 13:00
 
 
 =head1 SEE ALSO
