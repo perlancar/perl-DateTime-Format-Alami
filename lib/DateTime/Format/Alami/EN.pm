@@ -39,15 +39,18 @@ sub p_yesterday    { "(?:yesterday|yest)" }
 # XXX support cardinal
 sub p_dateymd      { join(
     "",
+    '(?{ $DateTime::Format::Alami::_has_year = 0 })',
     '(?: <o_dayint> \\s* <o_monthname> | <o_monthname> \\s* <o_dayint>\\b|<o_monthint>[ /-]<o_dayint>\\b )',
-    '(?: \\s*[,/-]?\\s* <o_yearint>)?'
+    '(?: \\s*[,/-]?\\s* <o_yearint> (?{ local $DateTime::Format::Alami::_has_year = $DateTime::Format::Alami::_has_year + 1 }))?',
+    '(?{ delete $DateTime::Format::Alami::m->{o_yearint} unless $DateTime::Format::Alami::_has_year })',
 )}
 
 sub p_dur_ago      { "<o_dur> \\s+ (?:ago)" }
 sub p_dur_later    { "<o_dur> \\s+ (?:later)" }
 
 sub o_date         { "(?: <p_today>|<p_tomorrow>|<p_yesterday>|<p_dateymd>)" }
-sub p_time         { "(?: <o_hour>:<o_minute>(?: :<o_second>)?)" } # XXX am/pm
+sub o_ampm         { "(?: am|pm)" }
+sub p_time         { "(?: <o_hour>[:.]<o_minute>(?: [:.]<o_second>)? \\s* <o_ampm>?)" } # XXX am/pm
 sub p_date_time    { "(?:<o_date> \\s+ (?:(?:on|at) \\s+)? <p_time>)" }
 
 # the ordering is a bit weird because: we need to apply role at compile-time

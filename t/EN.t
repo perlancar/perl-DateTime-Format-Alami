@@ -13,6 +13,7 @@ test_datetime_format_alami(
         parse_tests => [
             ["foo", undef],
 
+            # p_now
             ["nowadays"   , undef], # sanity
             ["now"        , "<CUR_YEAR>-<CUR_MONTH>-<CUR_DAY>"], # XXX test H:M:S
             ["right   now", "<CUR_YEAR>-<CUR_MONTH>-<CUR_DAY>"], # test multiple spaces
@@ -21,15 +22,19 @@ test_datetime_format_alami(
             ["JUST NOW"   , "<CUR_YEAR>-<CUR_MONTH>-<CUR_DAY>"], # tets case
             ["immediately", "<CUR_YEAR>-<CUR_MONTH>-<CUR_DAY>"], # XXX test H:M:S
 
+            # p_today
             ["today"   , "<CUR_YEAR>-<CUR_MONTH>-<CUR_DAY>T00:00:00"],
             ["this day", "<CUR_YEAR>-<CUR_MONTH>-<CUR_DAY>T00:00:00"],
 
+            # p_tomorrow
             ["tomorrow", "<YEAR_TOMORROW>-<MONTH_TOMORROW>-<DAY_TOMORROW>T00:00:00"],
             ["tom"     , "<YEAR_TOMORROW>-<MONTH_TOMORROW>-<DAY_TOMORROW>T00:00:00"],
 
+            # p_yesterday
             ["yesterday", "<YEAR_YESTERDAY>-<MONTH_YESTERDAY>-<DAY_YESTERDAY>T00:00:00"],
             ["yest"     , "<YEAR_YESTERDAY>-<MONTH_YESTERDAY>-<DAY_YESTERDAY>T00:00:00"],
 
+            # p_dateymd
             ["28febby", undef], # sanity
             ["28feb" , "<CUR_YEAR>-02-28"],
             ["28february", "<CUR_YEAR>-02-28"],
@@ -46,8 +51,20 @@ test_datetime_format_alami(
             ["5-8-11", "2011-05-08"],
             ["5/8/11", "2011-05-08"],
 
+            # p_dur_ago, p_dur_later
             ["1 day later", "<YEAR_TOMORROW>-<MONTH_TOMORROW>-<DAY_TOMORROW>"],
             ["1 day ago"  , "<YEAR_YESTERDAY>-<MONTH_YESTERDAY>-<DAY_YESTERDAY>"],
+
+            # p_time
+            ["11:00", "<CUR_YEAR>-<CUR_MONTH>-<CUR_DAY>T11:00:00"],
+            ["11:00:05 am", "<CUR_YEAR>-<CUR_MONTH>-<CUR_DAY>T11:00:05"],
+            ["11.00pm", "<CUR_YEAR>-<CUR_MONTH>-<CUR_DAY>T23:00:00"],
+
+            # p_date_time
+            ["jun 28 11:00", "<CUR_YEAR>-06-28T11:00:00"],
+            ["jun 28 11 11:00", "2011-06-28T11:00:00"],
+            ["jun 28 2011 11:00", "2011-06-28T11:00:00"],
+            ["jun 28, 11 11:00pm", "2011-06-28T23:00:00"],
 
         ],
     },

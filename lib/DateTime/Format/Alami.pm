@@ -47,29 +47,43 @@ sub new {
     no strict 'refs';
     unless (${"$class\::RE"}) {
         require Class::Inspector;
+        require Data::Graph::Util;
+
         my $meths = Class::Inspector->methods($class);
         my %pats;  # key = "p_..."
         my %pat_lengths; # key = "p_..."
+        my %graph;
         for my $meth (@$meths) {
             next unless $meth =~ /^[op]_/;
             my $pat = $self->$meth;
-            $pat =~ s/<(\w+)>/(?\&$1)/g;
+            my $is_p = $meth =~ /^p_/;
+            $pat =~ s/<(\w+)>/push @{$graph{$meth}}, $1; "(?\&$1)"/eg;
             my $action_meth = $meth; $action_meth =~ s/^p_/a_/;
+            my $before_meth = $meth; $before_meth =~ s/^p_/before_p_/;
+            $before_meth = undef unless $is_p && $self->can($before_meth);
             $pat = join(
                 "",
-                "(", ($meth =~ /^p_/ ? "\\b $pat \\b" : $pat), ")",
+                "(",
+                ($before_meth ? "(?{ ".($ENV{DEBUG} ? "say \"invoking $before_meth()\";" : "")."\$DateTime::Format::Alami::o->$before_meth(\$DateTime::Format::Alami::m) })" : ""),
+                ($is_p ? "\\b $pat \\b" : $pat), ")",
 
                 # we capture ourselves instead of relying on named capture
                 # because subpattern capture are discarded
                 "(?{ \$DateTime::Format::Alami::m->{$meth} = \$^N })",
 
-                ($meth =~ /^p_/ ? "(?{ ".($ENV{DEBUG} ? "say \"invoking $action_meth()\";" : "")."\$DateTime::Format::Alami::o->{_pat} = \"$meth\"; \$DateTime::Format::Alami::o->$action_meth(\$DateTime::Format::Alami::m) })" : ""),
+                ($is_p ? "(?{ ".($ENV{DEBUG} ? "say \"invoking $action_meth(\$^N)\";" : "")."\$DateTime::Format::Alami::o->{_pat} = \"$meth\"; \$DateTime::Format::Alami::o->$action_meth(\$DateTime::Format::Alami::m) })" : ""),
             );
             $pats{$meth}  = $pat;
             $pat_lengths{$meth} = length($pat);
         }
-        my @pat_names =
-            sort { $pat_lengths{$b} <=> $pat_lengths{$a} } keys %pats;
+        my @pat_names_by_deps = Data::Graph::Util::toposort(\%graph);
+        my %pat_name_dep_orders = map { $pat_names_by_deps[$_] => $_ }
+            0..$#pat_names_by_deps;
+        my @pat_names = sort {(
+            ($pat_name_dep_orders{$a} // 9999) <=>
+                ($pat_name_dep_orders{$b} // 9999)
+                ||
+                $pat_lengths{$b} <=> $pat_lengths{$a}) } keys %pats;
         my $nl = $ENV{DEBUG} ? "\n" : "";
         my $re = join(
             "",
@@ -356,9 +370,14 @@ sub a_time {
     my ($self, $m) = @_;
     $self->_now_if_unset;
     $self->{_uses_time} = 1;
-    $self->{_dt}->set_hour($m->{o_hour});
+    my $hour = $m->{o_hour};
+    if ($m->{o_ampm}) {
+        $hour += 12 if lc($m->{o_ampm}) eq 'pm' && $hour < 12;
+        $hour =  0  if lc($m->{o_ampm}) eq 'am' && $hour == 12;
+    }
+    $self->{_dt}->set_hour($hour);
     $self->{_dt}->set_minute($m->{o_minute});
-    $self->{_dt}->set_second($m->{o_second}) if defined $m->{o_second};
+    $self->{_dt}->set_second($m->{o_second} // 0);
 }
 
 sub a_date_time {

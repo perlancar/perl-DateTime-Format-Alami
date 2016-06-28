@@ -41,7 +41,13 @@ sub p_now            { "(?:saat \\s+ ini|sekarang|skrg?)" }
 sub p_today          { "(?:hari \\s+ ini)" }
 sub p_tomorrow       { "(?:b?esok|bsk)" }
 sub p_yesterday      { "(?:kemar[ei]n|kmrn)" }
-sub p_dateymd        { "(?: <o_dayint>(?:\\s+|-|/)?<o_monthname> | <o_dayint>(?:\\s+|-|/)<o_monthint>\\b )(?: \\s*[,/-]?\\s* <o_yearint>)?" }
+sub p_dateymd        { join(
+    "",
+    '(?{ $DateTime::Format::Alami::_has_year = 0 })',
+    '(?: <o_dayint>(?:\s+|-|/)?<o_monthname> | <o_dayint>(?:\s+|-|/)<o_monthint>\b )',
+    '(?: \s*[,/-]?\s* <o_yearint>  (?{ local $DateTime::Format::Alami::_has_year = $DateTime::Format::Alami::_has_year + 1 }))?',
+    '(?{ delete $DateTime::Format::Alami::m->{o_yearint} unless $DateTime::Format::Alami::_has_year })',
+)}
 
 sub p_dur_ago        { "<o_dur> \\s+ (?:(?:(?:yang|yg) \\s+)?lalu|tadi|td|yll?)" }
 sub p_dur_later      { "<o_dur> \\s+ (?:(?:(?:yang|yg) \\s+)?akan \\s+ (?:datang|dtg)|yad|lagi|lg)" }
