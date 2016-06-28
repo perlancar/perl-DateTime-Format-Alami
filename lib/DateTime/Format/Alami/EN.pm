@@ -42,6 +42,11 @@ sub p_tomorrow     { "(?:tomorrow|tom)" }
 sub p_yesterday    { "(?:yesterday|yest)" }
 # XXX support cardinal
 sub p_dateymd      { join(
+    # we use the 'local' trick here in embedded code (see perlre) to be
+    # backtrack-safe. we want to unset $m->{o_yearint} when date does not
+    # contain year. $m->{o_yearint} might be set when we try the patterns but
+    # might end up needing to be unset if the matching pattern ends up not
+    # having year.
     "",
     '(?{ $DateTime::Format::Alami::_has_year = 0 })',
     '(?: <o_dayint> \\s* <o_monthname> | <o_monthname> \\s* <o_dayint>\\b|<o_monthint>[ /-]<o_dayint>\\b )',
