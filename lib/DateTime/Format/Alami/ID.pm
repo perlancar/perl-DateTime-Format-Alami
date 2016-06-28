@@ -7,9 +7,8 @@ use 5.010001;
 use strict;
 use warnings;
 
-# XXX relative day reference -> yesterday | today | tomorrow (-1, 0, 1)
 # XXX holidays -> christmas | new year | ...
-# XXX 13.00 WIB
+# XXX WIB in time, e.g. 13.00 WIB
 # XXX *se*minggu (instead of 1 minggu), etc
 
 use Parse::Number::ID qw(parse_number_id);
