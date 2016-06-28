@@ -1,5 +1,16 @@
 Revision history for DateTime-Format-Alami
 
+0.10    2016-06-28 (PERLANCAR)
+
+        - Add patterns: p_time, p_date_time.
+
+        - [Internal] Generate recursive regex to be able to use another p_*
+          pattern inside p_* pattern. For example, see p_date_time.
+
+        - [Bugfix] Ordering of p_* patterns in the final pattern should use
+          topological sorting.
+
+
 0.09    2016-05-05 (PERLANCAR)
 
 	- No functional changes.
