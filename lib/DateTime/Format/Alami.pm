@@ -317,7 +317,7 @@ sub o_durwords  {
 
 sub o_dur {
     my $self = shift;
-    "(?:(" . $self->o_num . "\\s*" . $self->o_durwords . "\\s*)+)";
+    "(?:(" . $self->o_num . "\\s*" . $self->o_durwords . "\\s*(?:,\\s*)?)+)";
 }
 
 sub odur_dur {
@@ -341,7 +341,7 @@ sub o_timedurwords  {
 
 sub o_timedur {
     my $self = shift;
-    "(?:(" . $self->o_num . "\\s*?" . $self->o_timedurwords . "\\s*)+)";
+    "(?:(" . $self->o_num . "\\s*" . $self->o_timedurwords . "\\s*(?:,\\s*)?)+)";
 }
 
 sub _parse_dur {
@@ -495,7 +495,7 @@ sub a_date_time {
 1;
 # ABSTRACT: Parse human date/time expression (base class)
 
-=for Pod::Coverage ^([aopw]_.+)$
+=for Pod::Coverage ^((adur|a|pdur|p|odur|o|w)_.+)$
 
 =head1 SYNOPSIS
 

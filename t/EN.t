@@ -73,6 +73,7 @@ test_datetime_format_alami(
 
             # pdur_dur
             ["2h 3min", "PT2H3M"],
+            ["2 hours, 3 minute", "PT2H3M"],
         ],
     },
 );

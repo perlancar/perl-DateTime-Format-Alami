@@ -76,7 +76,7 @@ our $MAPS   = do { DateTime::Format::Alami::ID->new; $DateTime::Format::Alami::I
 1;
 # ABSTRACT: Parse human date/time/duration expression (Indonesian)
 
-=for Pod::Coverage ^([aopw]_.+)$
+=for Pod::Coverage ^((adur|a|pdur|p|odur|o|w)_.+)$
 
 =head1 DESCRIPTION
 
@@ -112,6 +112,11 @@ List of known date/time expressions:
  # p_date_time
  24 juni pk 13.00
  24 juni 2015 13:00
+
+List of known duration expressions:
+
+ # pdur_dur
+ 1 tahun 2 bulan 3 minggu 4 hari 5 jam 6 menit 7 detik
 
 
 =head1 SEE ALSO

@@ -78,7 +78,7 @@ our $MAPS   = do { DateTime::Format::Alami::EN->new; $DateTime::Format::Alami::E
 1;
 # ABSTRACT: Parse human date/time/duration expression (English)
 
-=for Pod::Coverage ^([aopw]_.+)$
+=for Pod::Coverage ^((adur|a|pdur|p|odur|o|w)_.+)$
 
 =head1 DESCRIPTION
 
