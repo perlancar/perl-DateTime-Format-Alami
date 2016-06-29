@@ -19,7 +19,7 @@ sub test_datetime_format_alami {
     subtest "test suite for $class" => sub {
         my $parser = $class->new;
 
-        for my $t (@{ $tests->{parse_tests} }) {
+        for my $t (@{ $tests->{parse_datetime_tests} }) {
             my ($str, $exp_template) = @$t;
             subtest $str => sub {
                 my $dt = $parser->parse_datetime($str);
@@ -66,7 +66,25 @@ sub test_datetime_format_alami {
                 }
                 is($dt_str, $exp, "result should be $exp");
             };
-        }
+        } # parse_datetime_tests
+
+        require DateTime::Format::Duration::ISO8601;
+        my $pdur = DateTime::Format::Duration::ISO8601->new;
+        for my $t (@{ $tests->{parse_datetime_duration_tests} }) {
+            my ($str, $exp_result) = @$t;
+            subtest $str => sub {
+                my $dtdur = $parser->parse_datetime_duration($str);
+                if ($exp_result) {
+                    ok($dtdur, "parse should succeed") or return;
+                } else {
+                    ok(!$dtdur, "parse should fail");
+                    return;
+                }
+
+                is($pdur->format_duration($dtdur), $exp_result,
+                   "result should be $exp_result");
+            };
+        } # parse_datetime_duration_tests
     };
 }
 

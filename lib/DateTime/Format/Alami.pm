@@ -45,7 +45,7 @@ sub new {
     }
     my $self = bless {}, $class;
     no strict 'refs';
-    unless (${"$class\::RE"}) {
+    unless (${"$class\::RE_DT"} && ${"$class\::RE_DUR"}) {
         require Class::Inspector;
         require Data::Graph::Util;
 
@@ -54,26 +54,28 @@ sub new {
         my %pat_lengths; # key = "p_..."
         my %graph;
         for my $meth (@$meths) {
-            next unless $meth =~ /^[op]_/;
+            next unless $meth =~ /^(odur|o|pdur|p)_/;
             my $pat = $self->$meth;
-            my $is_p = $meth =~ /^p_/;
+            my $is_p    = $meth =~ /^p_/;
+            my $is_pdur = $meth =~ /^pdur_/;
             $pat =~ s/<(\w+)>/push @{$graph{$meth}}, $1; "(?\&$1)"/eg;
-            my $action_meth = $meth; $action_meth =~ s/^p_/a_/;
-            my $before_meth = $meth; $before_meth =~ s/^p_/before_p_/;
-            $before_meth = undef unless $is_p && $self->can($before_meth);
+            my $action_meth = $meth;
+            if ($is_pdur) { $action_meth =~ s/^pdur_/adur_/ } else { $action_meth =~ s/^p_/a_/ }
+            #my $before_meth = $meth; $before_meth =~ s/^p_/before_p_/;
+            #$before_meth = undef unless $is_p && $self->can($before_meth);
             $pat = join(
                 "",
                 "(",
-                ($before_meth ? "(?{ ".($ENV{DEBUG} ? "say \"invoking $before_meth()\";" : "")."\$DateTime::Format::Alami::o->$before_meth(\$DateTime::Format::Alami::m) })" : ""),
-                ($is_p ? "\\b $pat \\b" : $pat), ")",
+                #($before_meth ? "(?{ ".($ENV{DEBUG} ? "say \"invoking $before_meth()\";" : "")."\$DateTime::Format::Alami::o->$before_meth(\$DateTime::Format::Alami::m) })" : ""),
+                ($is_p || $is_pdur ? "\\b $pat \\b" : $pat), ")",
 
                 # we capture ourselves instead of relying on named capture
                 # because subpattern capture are discarded
                 "(?{ \$DateTime::Format::Alami::m->{$meth} = \$^N })",
 
-                ($is_p ? "(?{ ".($ENV{DEBUG} ? "say \"invoking $action_meth(\$^N)\";" : "")."\$DateTime::Format::Alami::o->{_pat} = \"$meth\"; \$DateTime::Format::Alami::o->$action_meth(\$DateTime::Format::Alami::m) })" : ""),
+                ($is_p || $is_pdur ? "(?{ ".($ENV{DEBUG} ? "say \"invoking $action_meth(\$^N)\";" : "")."\$DateTime::Format::Alami::o->{_pat} = \"$meth\"; \$DateTime::Format::Alami::o->$action_meth(\$DateTime::Format::Alami::m) })" : ""),
             );
-            $pats{$meth}  = $pat;
+            $pats{$meth} = $pat;
             $pat_lengths{$meth} = length($pat);
         }
         my @pat_names_by_deps = Data::Graph::Util::toposort(\%graph);
@@ -85,19 +87,30 @@ sub new {
                 ||
                 $pat_lengths{$b} <=> $pat_lengths{$a}) } keys %pats;
         my $nl = $ENV{DEBUG} ? "\n" : "";
-        my $re = join(
+        my $re_dt = join(
             "",
             "(?&top)", $nl,
             #"(?&p_dateymd)", $nl, # testing
             "(?(DEFINE)", $nl,
             "(?<top>", join("|",
                             map {"(?&$_)"} grep {/^p_/} @pat_names), ")$nl",
-            (map { "(?<$_> $pats{$_})$nl" } @pat_names),
+            (map { "(?<$_> $pats{$_})$nl" } grep {/^(o|p)_/} @pat_names),
+            ")", # end of define
+        );
+        my $re_dur = join(
+            "",
+            "(?&top)", $nl,
+            #"(?&pdur_dur)", $nl, # testing
+            "(?(DEFINE)", $nl,
+            "(?<top>", join("|",
+                            map {"(?&$_)"} grep {/^pdur_/} @pat_names), ")$nl",
+            (map { "(?<$_> $pats{$_})$nl" } grep {/^(odur|pdur)_/} @pat_names),
             ")", # end of define
         );
         {
             use re 'eval';
-            ${"$class\::RE"} = qr/$re/ix;
+            ${"$class\::RE_DT"}  = qr/$re_dt/ix;
+            ${"$class\::RE_DUR"} = qr/$re_dur/ix;
         }
     }
     unless (${"$class\::MAPS"}) {
@@ -138,7 +151,7 @@ sub parse_datetime {
 
     local $self->{_time_zone} = $opts->{time_zone} if $opts->{time_zone};
 
-    my $re = ${ref($self).'::RE'};
+    my $re = ${ref($self).'::RE_DT'};
 
     $o = $self;
     my @res;
@@ -192,6 +205,86 @@ sub parse_datetime {
     }
 }
 
+sub _reset_dur {
+    my $self = shift;
+    undef $self->{_pat};
+    undef $self->{_dtdur};
+}
+
+sub parse_datetime_duration {
+    no strict 'refs';
+
+    my ($self, $str, $opts) = @_;
+
+    $opts //= {};
+    $opts->{format}  //= 'Duration';
+    $opts->{returns} //= 'first';
+
+    my $re = ${ref($self).'::RE_DUR'};
+
+    $o = $self;
+    my @res;
+    while (1) {
+        $o->_reset_dur;
+        $m = {};
+        $str =~ /($re)/go or last;
+        my $res = {
+            verbatim => $1,
+            pattern => $o->{_pat},
+            pos => pos($str) - length($1),
+            m => {%$m},
+        };
+        $res->{Duration}  = $o->{_dtdur};
+        if ($opts->{format} eq 'combined' || $opts->{format} eq 'seconds') {
+            my $d = $o->{_dtdur};
+            $res->{seconds} =
+                $d->years       *   365.25*86400 +
+                $d->months      *  30.4375*86400 +
+                $d->weeks       *        7*86400 +
+                $d->days        *          86400 +
+                $d->hours       *           3600 +
+                $d->minutes     *             60 +
+                $d->seconds                      +
+                $d->nanoseconds *           1e-9;
+        }
+        push @res, $res;
+        last if $opts->{returns} eq 'first';
+    }
+
+    return undef unless @res;
+
+    @res = ($res[-1]) if $opts->{returns} eq 'last';
+
+    # XXX support returns largest, smallest, all_sorted
+    if ($opts->{returns} =~ /\A(?:all_sorted|largest|smallest)\z/) {
+        require DateTime;
+        require DateTime::Duration;
+        my $base_dt = DateTime->now;
+        # sort from smallest to largest
+        @res = sort {
+            DateTime::Duration->compare($a->{Duration}, $b->{Duration}, $base_dt)
+          } @res;
+    }
+
+    if ($opts->{format} eq 'Duration') {
+        @res = map { $_->{Duration} } @res;
+    } elsif ($opts->{format} eq 'seconds') {
+        @res = map { $_->{seconds} } @res;
+    } elsif ($opts->{format} eq 'verbatim') {
+        @res = map { $_->{verbatim} } @res;
+    }
+
+    if ($opts->{returns} =~ /\A(?:all|all_sorted)\z/) {
+        return \@res;
+    } elsif ($opts->{returns} =~ /\A(?:first|smallest)\z/) {
+        return $res[0];
+    } elsif ($opts->{returns} =~ /\A(?:last|largest)\z/) {
+        return $res[-1];
+    } else {
+        die "Unknown returns option '$opts->{returns}'";
+    }
+}
+
 sub o_dayint { "(?:[12][0-9]|3[01]|0?[1-9])" }
 
 sub o_monthint { "(?:0?[1-9]|1[012])" }
@@ -225,6 +318,16 @@ sub o_durwords  {
 sub o_dur {
     my $self = shift;
     "(?:(" . $self->o_num . "\\s*" . $self->o_durwords . "\\s*)+)";
+}
+
+sub odur_dur {
+    my $self = shift;
+    $self->o_dur;
+}
+
+sub pdur_dur {
+    my $self = shift;
+    "(?:<odur_dur>)";
 }
 
 # durations less than a day
@@ -352,6 +455,11 @@ sub a_dateymd {
     }
 }
 
+sub adur_dur {
+    my ($self, $m) = @_;
+    $self->{_dtdur} = $self->_parse_dur($m->{odur_dur});
+}
+
 sub a_dur_ago {
     my ($self, $m) = @_;
     $self->a_now;
@@ -475,10 +583,16 @@ C<a_*> method.
 
 And there are also C<w_*> methods which return array of strings.
 
+Parsing duration is similar, except the method names are C<pdur_*>, C<odur_*>
+and C<adur_*>.
+
 
 =head1 ADDING A NEW HUMAN LANGUAGE
 
-TBD
+See an example in existing C<DateTime::Format::Alami::*> module. Basically you
+just need to supply the necessary patterns in the C<p_*> methods. If you want to
+introduce new C<p_*> method, don't forget to supply the action too in the C<a_*>
+method.
 
 
 =head1 METHODS
@@ -511,12 +625,10 @@ C<verbatim>, C<epoch>, and other extra information: C<pos> [position of pattern
 in the string], C<pattern> [pattern name], C<m> [raw named capture groups],
 C<uses_time> [whether the date involves time of day]).
 
-You might think that choosing C<epoch> could avoid the overhead of DateTime, but
-actually you can't since DateTime is used as the primary format during parsing.
-The epoch is retrieved from the DateTime object using the C<epoch> method.
-
-But if you choose C<verbatim>, you I<can> avoid the overhead of DateTime (as
-long as you set C<returns> to C<first>, C<last>, or C<all>).
+You might think that choosing C<epoch> or C<verbatim> could avoid the overhead
+of DateTime, but actually you can't since DateTime is used as the primary format
+during parsing. The epoch is retrieved from the DateTime object using the
+C<epoch> method.
 
 =item * prefers => str (nearest|future|past)
 
@@ -544,8 +656,58 @@ instead of a single result, even if there is only a single actual result.
 
 =back
 
+=head2 parse_datetime_duration($str[ , \%opts ]) => obj
+
+Parse/extract duration expression in C<$str>. Return undef if expression cannot
+be parsed. Otherwise return L<DateTime::Duration> object (or string/number if
+C<format> option is C<verbatim>/C<seconds>, or hash if C<format> option is
+C<combined>) or array of objects/strings/numbers (if C<returns> option is
+C<all>/C<all_sorted>).
+
+Known options:
+
+=over
+
+=item * format => str (Duration|verbatim|seconds|combined)
+
+The default is C<Duration>, which will return DateTime::Duration object. Other
+choices include C<verbatim> (returns the original text), C<seconds> (returns
+number of seconds, approximated), C<combined> (returns a hash containing keys
+like C<Duration>, C<verbatim>, C<seconds>, and other extra information: C<pos>
+[position of pattern in the string], C<pattern> [pattern name], C<m> [raw named
+capture groups]).
+
+You might think that choosing C<seconds> or C<verbatim> could avoid the overhead
+of DateTime::Duration, but actually you can't since DateTime::Duration is used
+as the primary format during parsing. The number of seconds is calculated from
+the DateTime::Duration object I<using an approximation> (for example, "1 month"
+does not convert exactly to seconds).
+
+=item * returns => str (first|last|smallest|largest|all|all_sorted)
+
+If the text has multiple possible durations, then this argument determines which
+date will be returned. Possible choices are: C<first> (return the first duration
+found in the string, the default), C<last> (return the final duration found in
+the string), C<smallest> (return the smallest duration), C<largest> (return the
+largest duration), C<all> (return all durations found in the string, in the
+order they were found in the string), C<all_sorted> (return all durations found
+in the string, in smallest-to-largest order).
+
+When C<all> or C<all_sorted> is chosen, function will return array(ref) of
+results instead of a single result, even if there is only a single actual
+result.
+
+=back
+
 
 =head1 FAQ
+
+=head2 How does it compare to DateTime::Format::Natural?
+
+DateTime::Format::Alami::EN (DFA:EN) currently understands less English
+date/time strings than DateTime::Format::Natural (DF:Natural). DFA:EN can parse
+duration strings like "2 days" while C<parse_datetime_duration()> in DF:Natural
+tries to find one or two dates instead of duration.
 
 =head2 What does "alami" mean?
 
@@ -563,9 +725,7 @@ For Indonesian: L<DateTime::Format::Indonesian>, L<Date::Extract::ID> (currently
 this module uses DateTime::Format::Alami as its backend).
 
 For English: L<DateTime::Format::Natural>. You probably want to use this
-instead, unless you want something other than English. I did try to create an
-Indonesian translation for this module a few years ago, but gave up. Perhaps I
-should make another attempt.
+instead, unless you want something other than English.
 
 =head2 Other modules on CPAN
 

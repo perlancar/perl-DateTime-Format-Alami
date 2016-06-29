@@ -69,11 +69,12 @@ sub p_date_time      { "(?:<o_date> \\s+ (?:(?:pada \\s+)? (jam|j|pukul|pkl?)\\s
 use Role::Tiny::With;
 BEGIN { with 'DateTime::Format::Alami' };
 
-our $RE   = do { DateTime::Format::Alami::ID->new; $DateTime::Format::Alami::ID::RE   }; # PRECOMPUTE
-our $MAPS = do { DateTime::Format::Alami::ID->new; $DateTime::Format::Alami::ID::MAPS }; # PRECOMPUTE
+our $RE_DT  = do { DateTime::Format::Alami::ID->new; $DateTime::Format::Alami::ID::RE_DT  }; # PRECOMPUTE
+our $RE_DUR = do { DateTime::Format::Alami::ID->new; $DateTime::Format::Alami::ID::RE_DUR }; # PRECOMPUTE
+our $MAPS   = do { DateTime::Format::Alami::ID->new; $DateTime::Format::Alami::ID::MAPS   }; # PRECOMPUTE
 
 1;
-# ABSTRACT: Parse human date/time expression (Indonesian)
+# ABSTRACT: Parse human date/time/duration expression (Indonesian)
 
 =for Pod::Coverage ^([aopw]_.+)$
 

@@ -10,7 +10,7 @@ use Test::More 0.98;
 test_datetime_format_alami(
     "EN",
     {
-        parse_tests => [
+        parse_datetime_tests => [
             ["foo", undef],
 
             # p_now
@@ -66,6 +66,13 @@ test_datetime_format_alami(
             ["jun 28 2011 11:00", "2011-06-28T11:00:00"],
             ["jun 28, 11 11:00pm", "2011-06-28T23:00:00"],
 
+        ],
+
+        parse_datetime_duration_tests => [
+            ["foo", undef],
+
+            # pdur_dur
+            ["2h 3min", "PT2H3M"],
         ],
     },
 );

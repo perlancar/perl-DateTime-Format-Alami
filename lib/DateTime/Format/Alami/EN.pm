@@ -71,17 +71,18 @@ sub p_date_time    { "(?:<o_date> \\s+ (?:(?:on|at) \\s+)? <p_time>)" }
 use Role::Tiny::With;
 BEGIN { with 'DateTime::Format::Alami' };
 
-our $RE   = do { DateTime::Format::Alami::EN->new; $DateTime::Format::Alami::EN::RE   }; # PRECOMPUTE
-our $MAPS = do { DateTime::Format::Alami::EN->new; $DateTime::Format::Alami::EN::MAPS }; # PRECOMPUTE
+our $RE_DT  = do { DateTime::Format::Alami::EN->new; $DateTime::Format::Alami::EN::RE_DT  }; # PRECOMPUTE
+our $RE_DUR = do { DateTime::Format::Alami::EN->new; $DateTime::Format::Alami::EN::RE_DUR }; # PRECOMPUTE
+our $MAPS   = do { DateTime::Format::Alami::EN->new; $DateTime::Format::Alami::EN::MAPS   }; # PRECOMPUTE
 
 1;
-# ABSTRACT: Parse human date/time expression (English)
+# ABSTRACT: Parse human date/time/duration expression (English)
 
 =for Pod::Coverage ^([aopw]_.+)$
 
 =head1 DESCRIPTION
 
-List of known expressions:
+List of known date/time expressions:
 
  # p_now
  (just|right)? now
@@ -114,6 +115,11 @@ List of known expressions:
  # p_date_time
  june 25 2pm
  2016-06-25 10:00:00
+
+List of known duration expressions:
+
+ # pdur_dur
+ 1 year 2 months 3 weeks 4 days 5 hours 6 minutes 7 seconds
 
 
 =head1 SEE ALSO
