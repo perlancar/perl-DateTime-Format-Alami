@@ -705,8 +705,12 @@ result.
 
 =head2 How does it compare to DateTime::Format::Natural?
 
-DateTime::Format::Alami::EN (DFA:EN) currently understands less English
-date/time strings than DateTime::Format::Natural (DF:Natural).
+DateTime::Format::Natural (DF:Natural) is a more established module (first
+released on 2016) and currently understands more English date/time strings than
+DateTime::Format::Alami::EN (DFA:EN).
+
+Aside from English, as of this writing there is no other language supported by
+DF:Natural.
 
 DFA:EN's C<parse_datetime_duration()> produces a L<DateTime::Duration> object
 while DF:Natural's C<parse_datetime_duration()> returns two L<DateTime> objects
@@ -726,7 +730,7 @@ L<Date::Extract>. DateTime::Format::Alami has some features of Date::Extract so
 it can be used to replace Date::Extract.
 
 For Indonesian: L<DateTime::Format::Indonesian>, L<Date::Extract::ID> (currently
-this module uses DateTime::Format::Alami as its backend).
+this module uses DateTime::Format::Alami::ID as its backend).
 
 For English: L<DateTime::Format::Natural>. You probably want to use this
 instead, unless you want something other than English.
