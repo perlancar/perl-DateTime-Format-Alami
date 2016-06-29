@@ -706,9 +706,12 @@ result.
 =head2 How does it compare to DateTime::Format::Natural?
 
 DateTime::Format::Alami::EN (DFA:EN) currently understands less English
-date/time strings than DateTime::Format::Natural (DF:Natural). DFA:EN can parse
-duration strings like "2 days" while C<parse_datetime_duration()> in DF:Natural
-tries to find one or two dates instead of duration.
+date/time strings than DateTime::Format::Natural (DF:Natural).
+
+DFA:EN's C<parse_datetime_duration()> produces a L<DateTime::Duration> object
+while DF:Natural's C<parse_datetime_duration()> returns two L<DateTime> objects
+instead. In other words, DF:Natural can parse "from 23 Jun to 29 Jun" in
+addition to "for 2 weeks".
 
 =head2 What does "alami" mean?
 
