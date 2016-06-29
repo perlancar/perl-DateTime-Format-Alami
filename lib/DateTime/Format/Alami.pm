@@ -518,9 +518,10 @@ use Indonesian:
 
 =head1 DESCRIPTION
 
-This class parses human/natural date/time string and returns DateTime object.
-Currently it supports English and Indonesian. The goal of this module is to make
-it easier to add support for other human languages.
+This class parses human/natural date/time/duration string and returns
+L<DateTime> (or L<DateTime::Duration>) object. Currently it supports English and
+Indonesian. The goal of this module is to make it easier to add support for
+other human languages.
 
 To actually use this class, you must use one of its subclasses for each
 human language that you want to parse.
