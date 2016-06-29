@@ -703,23 +703,40 @@ result.
 
 =head1 FAQ
 
-=head2 How does it compare to DateTime::Format::Natural?
+=head2 What does "alami" mean?
 
-DateTime::Format::Natural (DF:Natural) is a more established module (first
-released on 2016) and currently understands more English date/time strings than
-DateTime::Format::Alami::EN (DFA:EN).
+It is an Indonesian word, meaning "natural".
 
-Aside from English, as of this writing there is no other language supported by
-DF:Natural.
+=head2 How does it compare to similar modules?
+
+L<DateTime::Format::Natural> (DF:Natural) is a more established module (first
+released on 2006) and can understand a bit more English expression like 'last
+day of Sep'. Aside from English, it does not yet support other languages.
 
 DFA:EN's C<parse_datetime_duration()> produces a L<DateTime::Duration> object
 while DF:Natural's C<parse_datetime_duration()> returns two L<DateTime> objects
 instead. In other words, DF:Natural can parse "from 23 Jun to 29 Jun" in
 addition to "for 2 weeks".
 
-=head2 What does "alami" mean?
+DF:Natural in general is slightly more strict about the formats it accepts, e.g.
+it rejects C<Jun 23st> (the error message even gives hints that the suffix must
+be 'rd'). DF:Natural can give a detailed error message on why parsing has failed
+(see its C<error()> method).
 
-It is an Indonesian word, meaning "natural".
+L<DateTime::Format::Flexible> (DF:Flexible) is another established module (first
+released in 2007) that, aside from parsing human expression (like 'tomorrow',
+'sep 1st') can also parse date/time in several other formats like RFC 822,
+making it a convenient module to use as a 'one-stop' solution to parse date.
+Compared to DF:Natural, it has better support for timezone but cannot parse some
+English expressions. Aside from English, it currently supports German and
+Spanish. It does not support parsing duration expression. Performance-wise, it
+is the slowest (see L<Bencher::Scenario::DateTimeFormatAlami::Parsing>).
+
+This module itself: B<DateTime::Format::Alami> (DF:Alami) is yet another
+implementation. Internally, it uses recursive regex to make parsing simpler and
+adding more languages easier. It currently supports English and Indonesian. It
+supports parsing duration expression. It has the smallest startup time (see see
+L<Bencher::Scenario::DateTimeFormatAlami::Startup>).
 
 
 =head1 SEE ALSO
@@ -729,11 +746,13 @@ It is an Indonesian word, meaning "natural".
 L<Date::Extract>. DateTime::Format::Alami has some features of Date::Extract so
 it can be used to replace Date::Extract.
 
+L<DateTime::Format::Flexible>. See L</"FAQ">.
+
 For Indonesian: L<DateTime::Format::Indonesian>, L<Date::Extract::ID> (currently
 this module uses DateTime::Format::Alami::ID as its backend).
 
-For English: L<DateTime::Format::Natural>. You probably want to use this
-instead, unless you want something other than English.
+For English: L<DateTime::Format::Natural>. See L</"FAQ">.
+
 
 =head2 Other modules on CPAN
 
