@@ -39,7 +39,9 @@ test_datetime_format_alami(
             ["28feb" , "<CUR_YEAR>-02-28"],
             ["28february", "<CUR_YEAR>-02-28"],
             ["28 feb", "<CUR_YEAR>-02-28"],
+            ["28th feb", "<CUR_YEAR>-02-28"],
             ["feb 28", "<CUR_YEAR>-02-28"],
+            ["feb 28th", "<CUR_YEAR>-02-28"],
 
             ["2/1", "<CUR_YEAR>-02-01"],
             ["2/28", "<CUR_YEAR>-02-28"],

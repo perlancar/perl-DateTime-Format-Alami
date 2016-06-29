@@ -9,7 +9,7 @@ use warnings;
 
 # XXX holidays -> christmas | new year | ...
 # XXX timezone in time
-# XXX more patterns from DT:F:Natural
+# XXX more patterns from DF:Natural
 
 use Parse::Number::EN qw(parse_number_en);
 
@@ -40,7 +40,9 @@ sub p_now          { "(?:(?:(?:right|just) \\s+ )?now|immediately)" }
 sub p_today        { "(?:today|this \\s+ day)" }
 sub p_tomorrow     { "(?:tomorrow|tom)" }
 sub p_yesterday    { "(?:yesterday|yest)" }
-# XXX support cardinal
+
+sub o_cardinal_suffix { '(?:\s*(?:th|nd|st))' }
+
 sub p_dateymd      { join(
     # we use the 'local' trick here in embedded code (see perlre) to be
     # backtrack-safe. we want to unset $m->{o_yearint} when date does not
@@ -49,7 +51,7 @@ sub p_dateymd      { join(
     # having year.
     "",
     '(?{ $DateTime::Format::Alami::_has_year = 0 })',
-    '(?: <o_dayint> \\s* <o_monthname> | <o_monthname> \\s* <o_dayint>\\b|<o_monthint>[ /-]<o_dayint>\\b )',
+    '(?: <o_dayint><o_cardinal_suffix>? (?:\\s*|[ /-]) <o_monthname> | <o_monthname> (?:\\s*|[ /-]) <o_dayint><o_cardinal_suffix>?\\b | <o_monthint>[/-]<o_dayint>\\b )',
     '(?: \\s*[,/-]?\\s* <o_yearint> (?{ local $DateTime::Format::Alami::_has_year = $DateTime::Format::Alami::_has_year + 1 }))?',
     '(?{ delete $DateTime::Format::Alami::m->{o_yearint} unless $DateTime::Format::Alami::_has_year })',
 )}
