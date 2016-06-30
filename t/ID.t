@@ -4,67 +4,74 @@ use 5.010001;
 use strict;
 use warnings;
 
+use Test::MockTime qw(set_fixed_time);
+BEGIN {
+    set_fixed_time(1467244800); # 2016-06-30T00:00:00Z
+}
+
 use Test::DateTime::Format::Alami;
+use Test::MockTime;
 use Test::More 0.98;
 
 test_datetime_format_alami(
     "ID",
     {
+        time_zone => 'UTC',
         parse_datetime_tests => [
             ["foo", undef],
 
             # p_now
             ["saat inilah" , undef], # sanity
-            ["saat ini" , "<CUR_YEAR>-<CUR_MONTH>-<CUR_DAY>"], # XXX test H:M:S
-            ["saat  ini", "<CUR_YEAR>-<CUR_MONTH>-<CUR_DAY>"], # test multiple spaces
-            ["Saat Ini" , "<CUR_YEAR>-<CUR_MONTH>-<CUR_DAY>"], # test case
-            ["sekarang" , "<CUR_YEAR>-<CUR_MONTH>-<CUR_DAY>"], # XXX test H:M:S
-            ["skrg"     , "<CUR_YEAR>-<CUR_MONTH>-<CUR_DAY>"], # XXX test H:M:S
+            ["saat ini" , "2016-06-30T00:00:00"],
+            ["saat  ini", "2016-06-30T00:00:00"], # test multiple spaces
+            ["Saat Ini" , "2016-06-30T00:00:00"], # test case
+            ["sekarang" , "2016-06-30T00:00:00"],
+            ["skrg"     , "2016-06-30T00:00:00"],
 
             # p_today
-            ["hari ini", "<CUR_YEAR>-<CUR_MONTH>-<CUR_DAY>T00:00:00"],
+            ["hari ini", "2016-06-30T00:00:00"],
 
             # p_tomorrow
-            ["besok", "<YEAR_TOMORROW>-<MONTH_TOMORROW>-<DAY_TOMORROW>T00:00:00"],
-            ["esok" , "<YEAR_TOMORROW>-<MONTH_TOMORROW>-<DAY_TOMORROW>T00:00:00"],
+            ["besok", "2016-07-01T00:00:00"],
+            ["esok" , "2016-07-01T00:00:00"],
 
             # p_yesterday
-            ["kemarin", "<YEAR_YESTERDAY>-<MONTH_YESTERDAY>-<DAY_YESTERDAY>T00:00:00"],
-            ["kemaren", "<YEAR_YESTERDAY>-<MONTH_YESTERDAY>-<DAY_YESTERDAY>T00:00:00"],
-            ["kmrn"   , "<YEAR_YESTERDAY>-<MONTH_YESTERDAY>-<DAY_YESTERDAY>T00:00:00"],
+            ["kemarin", "2016-06-29T00:00:00"],
+            ["kemaren", "2016-06-29T00:00:00"],
+            ["kmrn"   , "2016-06-29T00:00:00"],
 
             # p_dateymd
-            ["28martian", undef], # sanity
-            ["28feb" , "<CUR_YEAR>-02-28"],
-            ["28februari", "<CUR_YEAR>-02-28"],
-            ["28 feb", "<CUR_YEAR>-02-28"],
-            ["28-feb", "<CUR_YEAR>-02-28"],
-            ["28/feb", "<CUR_YEAR>-02-28"],
+            ["28martian" , undef], # sanity
+            ["28feb"     , "2016-02-28T00:00:00"],
+            ["28februari", "2016-02-28T00:00:00"],
+            ["28 feb"    , "2016-02-28T00:00:00"],
+            ["28-feb"    , "2016-02-28T00:00:00"],
+            ["28/feb"    , "2016-02-28T00:00:00"],
 
-            ["2/1", "<CUR_YEAR>-01-02"],
-            ["28/2"  , "<CUR_YEAR>-02-28"],
+            ["2/1"   , "2016-01-02T00:00:00"],
+            ["28/2"  , "2016-02-28T00:00:00"],
             ["28/299", undef], # sanity
 
-            ["8 mei 2011", "2011-05-08"],
-            ["8-mei-2011", "2011-05-08"],
-            ["8-05-2011" , "2011-05-08"],
-            ["8-5-2011"  , "2011-05-08"],
-            ["8-5-11"    , "2011-05-08"],
-            ["8/5/11"    , "2011-05-08"],
+            ["8 mei 2011", "2011-05-08T00:00:00"],
+            ["8-mei-2011", "2011-05-08T00:00:00"],
+            ["8-05-2011" , "2011-05-08T00:00:00"],
+            ["8-5-2011"  , "2011-05-08T00:00:00"],
+            ["8-5-11"    , "2011-05-08T00:00:00"],
+            ["8/5/11"    , "2011-05-08T00:00:00"],
 
             # p_dur_ago, p_dur_later
-            ["1 hari lagi"     , "<YEAR_TOMORROW>-<MONTH_TOMORROW>-<DAY_TOMORROW>"],
-            ["1 hari yang lalu", "<YEAR_YESTERDAY>-<MONTH_YESTERDAY>-<DAY_YESTERDAY>"],
+            ["1 hari lagi"     , "2016-07-01T00:00:00"],
+            ["2 hari yang lalu", "2016-06-28T00:00:00"],
 
             # p_time
-            ["11:00", "<CUR_YEAR>-<CUR_MONTH>-<CUR_DAY>T11:00:00"],
-            ["11:00:05", "<CUR_YEAR>-<CUR_MONTH>-<CUR_DAY>T11:00:05"],
-            ["23.00", "<CUR_YEAR>-<CUR_MONTH>-<CUR_DAY>T23:00:00"],
+            ["11:00"   , "2016-06-30T11:00:00"],
+            ["11:00:05", "2016-06-30T11:00:05"],
+            ["23.00"   , "2016-06-30T23:00:00"],
 
             # p_date_time
-            ["28 jun 11:00", "<CUR_YEAR>-06-28T11:00:00"],
-            ["28 jun 11 11:00", "2011-06-28T11:00:00"],
-            ["28 jun 2011 11.00", "2011-06-28T11:00:00"],
+            ["28 jun 11:00"       , "2016-06-28T11:00:00"],
+            ["28 jun 11 11:00"    , "2011-06-28T11:00:00"],
+            ["28 jun 2011 11.00"  , "2011-06-28T11:00:00"],
             ["28 jun, 11 23:00:05", "2011-06-28T23:00:05"],
 
         ],

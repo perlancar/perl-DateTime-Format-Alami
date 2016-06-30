@@ -20,51 +20,19 @@ sub test_datetime_format_alami {
         my $parser = $class->new;
 
         for my $t (@{ $tests->{parse_datetime_tests} }) {
-            my ($str, $exp_template) = @$t;
+            my ($str, $exp_result) = @$t;
             subtest $str => sub {
-                my $dt = $parser->parse_datetime($str);
-                if ($exp_template) {
-                    ok($dt, "parse should succeed") or return;
+                my $dt;
+                eval { $dt = $parser->parse_datetime(
+                    $str, {time_zone => $tests->{time_zone}}) };
+                my $err = $@;
+                if ($exp_result) {
+                    ok(!$err, "parse should succeed") or return;
+                    is("$dt", $exp_result, "result should be $exp_result");
                 } else {
-                    ok(!$dt, "parse should fail");
+                    ok($err, "parse should fail");
                     return;
                 }
-
-                my $now = DateTime->now;
-                my $tomorrow  = $now->clone->add(days => 1);
-                my $yesterday = $now->clone->subtract(days => 1);
-                my $template_vars = {
-                    CUR_YEAR   => $now->year,
-                    CUR_MONTH  => sprintf("%02d", $now->month),
-                    CUR_DAY    => sprintf("%02d", $now->day),
-                    CUR_HOUR   => sprintf("%02d", $now->hour),
-                    CUR_MINUTE => sprintf("%02d", $now->minute),
-                    CUR_SECOND => sprintf("%02d", $now->second),
-
-                    YEAR_TOMORROW    => $tomorrow->year,
-                    MONTH_TOMORROW   => sprintf("%02d", $tomorrow->month),
-                    DAY_TOMORROW     => sprintf("%02d", $tomorrow->day),
-                    HOUR_TOMORROW    => sprintf("%02d", $tomorrow->hour),
-                    MINUTE_TOMORROW  => sprintf("%02d", $tomorrow->minute),
-                    SECOND_TOMORROW  => sprintf("%02d", $tomorrow->second),
-
-                    YEAR_YESTERDAY   => $yesterday->year,
-                    MONTH_YESTERDAY  => sprintf("%02d", $yesterday->month),
-                    DAY_YESTERDAY    => sprintf("%02d", $yesterday->day),
-                    HOUR_YESTERDAY   => sprintf("%02d", $yesterday->hour),
-                    MINUTE_YESTERDAY => sprintf("%02d", $yesterday->minute),
-                    SECOND_YESTERDAY => sprintf("%02d", $yesterday->second),
-                };
-
-                my $exp = $exp_template;
-                $exp =~ s/<(\w+)>/$template_vars->{$1}/eg;
-                my $dt_str;
-                if ($exp =~ /T/) {
-                    $dt_str = "$dt";
-                } else {
-                    $dt_str = $dt->ymd;
-                }
-                is($dt_str, $exp, "result should be $exp");
             };
         } # parse_datetime_tests
 
@@ -73,16 +41,17 @@ sub test_datetime_format_alami {
         for my $t (@{ $tests->{parse_datetime_duration_tests} }) {
             my ($str, $exp_result) = @$t;
             subtest $str => sub {
-                my $dtdur = $parser->parse_datetime_duration($str);
+                my $dtdur;
+                eval { $dtdur = $parser->parse_datetime_duration($str) };
+                my $err = $@;
                 if ($exp_result) {
-                    ok($dtdur, "parse should succeed") or return;
+                    ok(!$err, "parse should succeed") or return;
+                    is($pdur->format_duration($dtdur), $exp_result,
+                       "result should be $exp_result");
                 } else {
-                    ok(!$dtdur, "parse should fail");
+                    ok($err, "parse should fail");
                     return;
                 }
-
-                is($pdur->format_duration($dtdur), $exp_result,
-                   "result should be $exp_result");
             };
         } # parse_datetime_duration_tests
     };
