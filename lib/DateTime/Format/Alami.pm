@@ -803,8 +803,7 @@ released in 2007) that, aside from parsing human expression (like 'tomorrow',
 making it a convenient module to use as a 'one-stop' solution to parse date.
 Compared to DF:Natural, it has better support for timezone but cannot parse some
 English expressions. Aside from English, it currently supports German and
-Spanish. It does not support parsing duration expression. Performance-wise, it
-is the slowest (see L<Bencher::Scenario::DateTimeFormatAlami::Parsing>).
+Spanish. It does not support parsing duration expression.
 
 This module itself: B<DateTime::Format::Alami> (DF:Alami) is yet another
 implementation. Internally, it uses recursive regex to make parsing simpler and
@@ -814,6 +813,9 @@ DF:Flexible can run on perl 5.8+). It currently supports English and Indonesian.
 It supports parsing duration expression and returns DateTime::Duration object.
 It has the smallest startup time (see see
 L<Bencher::Scenario::DateTimeFormatAlami::Startup>).
+
+Performance-wise, all the modules are within the same order of magnitude (see
+L<Bencher::Scenario::DateTimeFormatAlami::Parsing>).
 
 
 =head1 SEE ALSO
