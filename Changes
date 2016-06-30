@@ -1,5 +1,12 @@
 Revision history for DateTime-Format-Alami
 
+0.13    2016-06-30 (PERLANCAR)
+
+        - No functional changes.
+
+        - [build] Forgot to exclude nytprof* files/dirs from the build.
+
+
 0.12    2016-06-30 (PERLANCAR)
 
         - Improve compliance with DateTime::Format API: allow calling
