@@ -92,7 +92,7 @@ sub new {
         my $nl = $ENV{DEBUG} ? "\n" : "";
         my $re_dt = join(
             "",
-            "((?&top))", $nl,
+            "(?&top)", $nl,
             #"(?&p_dateymd)", $nl, # testing
             "(?(DEFINE)", $nl,
             "(?<top>", join("|",
@@ -157,10 +157,10 @@ sub _reset {
 }
 
 sub parse_datetime {
+    no strict 'refs';
+
     # we require DateTime here, for all the a_* methods
     require DateTime;
-
-    no strict 'refs';
 
     my ($self, $str, $opts) = @_;
 
@@ -174,19 +174,24 @@ sub parse_datetime {
 
     local $self->{time_zone} = $opts->{time_zone} if $opts->{time_zone};
 
-    my $re = ${ref($self).'::RE_DT'};
+    # we need /o to avoid repeated regcomp, but we need to make it work with all
+    # subclasses, so we use eval() here.
+    unless (defined *{ref($self).'::_code_match_dt'}) {
+        *{ref($self).'::_code_match_dt'} = eval "sub { \$_[0] =~ /(\$".ref($self)."::RE_DT)/go; \$1 }";
+        die if $@;
+    }
 
     $o = $self;
     my @res;
     while (1) {
         $o->_reset;
         $m = {};
-        $str =~ /$re/g or last;
+        my $match = &{ref($self).'::_code_match_dt'}($str) or last;
         $o->{_dt}->truncate(to=>'day') unless $o->{_uses_time};
         my $res = {
-            verbatim => $1,
+            verbatim => $match,
             pattern => $o->{_pat},
-            pos => pos($str) - length($1),
+            pos => pos($str) - length($match),
             m => {%$m},
         };
         $res->{uses_time} = $o->{_uses_time} ? 1:0;
@@ -250,18 +255,23 @@ sub parse_datetime_duration {
     $opts->{format}  //= 'Duration';
     $opts->{returns} //= 'first';
 
-    my $re = ${ref($self).'::RE_DUR'};
+    # we need /o to avoid repeated regcomp, but we need to make it work with all
+    # subclasses, so we use eval() here.
+    unless (defined *{ref($self).'::_code_match_dur'}) {
+        *{ref($self).'::_code_match_dur'} = eval "sub { \$_[0] =~ /(\$".ref($self)."::RE_DUR)/go; \$1 }";
+        die if $@;
+    }
 
     $o = $self;
     my @res;
     while (1) {
         $o->_reset_dur;
         $m = {};
-        $str =~ /($re)/g or last;
+        my $match = &{ref($self).'::_code_match_dur'}($str) or last;
         my $res = {
-            verbatim => $1,
+            verbatim => $match,
             pattern => $o->{_pat},
-            pos => pos($str) - length($1),
+            pos => pos($str) - length($match),
             m => {%$m},
         };
         $res->{Duration}  = $o->{_dtdur};
