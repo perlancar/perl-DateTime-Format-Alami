@@ -734,8 +734,11 @@ is the slowest (see L<Bencher::Scenario::DateTimeFormatAlami::Parsing>).
 
 This module itself: B<DateTime::Format::Alami> (DF:Alami) is yet another
 implementation. Internally, it uses recursive regex to make parsing simpler and
-adding more languages easier. It currently supports English and Indonesian. It
-supports parsing duration expression. It has the smallest startup time (see see
+adding more languages easier. It requires perl 5.14.0 or newer due to the use of
+C<(?{ ... })> code blocks inside regular expression (while DF:Natural and
+DF:Flexible can run on perl 5.8+). It currently supports English and Indonesian.
+It supports parsing duration expression and returns DateTime::Duration object.
+It has the smallest startup time (see see
 L<Bencher::Scenario::DateTimeFormatAlami::Startup>).
 
 
