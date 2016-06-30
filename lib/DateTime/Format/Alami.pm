@@ -3,7 +3,7 @@ package DateTime::Format::Alami;
 # DATE
 # VERSION
 
-use 5.010001;
+use 5.014000;
 use strict;
 use warnings;
 use Log::Any::IfLOG '$log';
