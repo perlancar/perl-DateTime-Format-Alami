@@ -1,6 +1,6 @@
 Revision history for DateTime-Format-Alami
 
-0.12    2016-06-30 (PERLANCAR) (unreleased)
+0.12    2016-06-30 (PERLANCAR)
 
         - Improve compliance with DateTime::Format API: allow calling
           parse_datetime() and parse_datetime_duration() as static method, and

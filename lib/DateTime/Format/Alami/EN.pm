@@ -7,10 +7,6 @@ use 5.014000;
 use strict;
 use warnings;
 
-# XXX holidays -> christmas | new year | ...
-# XXX timezone in time
-# XXX more patterns from DF:Natural
-
 use Parse::Number::EN qw(parse_number_en);
 
 sub o_num       { $Parse::Number::EN::Pat }
