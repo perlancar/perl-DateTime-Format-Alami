@@ -57,7 +57,7 @@ sub p_dateymd      { join(
 )}
 
 sub p_dur_ago      { "<o_dur> \\s+ (?:ago)" }
-sub p_dur_later    { "<o_dur> \\s+ (?:later)" }
+sub p_dur_later    { "<o_dur> \\s+ (?:later) | in \\s+ <o_dur>" }
 
 sub o_date         { "(?: <p_today>|<p_tomorrow>|<p_yesterday>|<p_dateymd>)" }
 sub o_ampm         { "(?: am|pm)" }

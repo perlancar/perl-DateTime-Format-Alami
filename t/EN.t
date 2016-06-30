@@ -60,8 +60,9 @@ test_datetime_format_alami(
             ["5/8/11"     , "2011-05-08T00:00:00"],
 
             # p_dur_ago, p_dur_later
-            ["1 day later", "2016-07-01T00:00:00"],
-            ["2 day ago"  , "2016-06-28T00:00:00"],
+            ["1 day later"     , "2016-07-01T00:00:00"],
+            ["in 2 mins 3 secs", "2016-06-30T00:02:03"],
+            ["2 day ago"       , "2016-06-28T00:00:00"], # test: plural but no -s
 
             # p_time
             ["11:00"      , "2016-06-30T11:00:00"],
