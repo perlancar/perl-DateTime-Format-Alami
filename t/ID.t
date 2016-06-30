@@ -63,6 +63,17 @@ test_datetime_format_alami(
             ["1 hari lagi"     , "2016-07-01T00:00:00"],
             ["2 hari yang lalu", "2016-06-28T00:00:00"],
 
+            # p_which_dow
+            ["senin ini"         , "2016-06-27T00:00:00"],
+            ["senin minggu ini"  , "2016-06-27T00:00:00"],
+            ["sen mgg ini"       , "2016-06-27T00:00:00"], # test: abbrev
+
+            ["senin lalu"        , "2016-06-20T00:00:00"],
+            ["sen mgg lalu"      , "2016-06-20T00:00:00"],
+
+            ["senin depan"       , "2016-07-04T00:00:00"],
+            ["sen mg dpn"        , "2016-07-04T00:00:00"],
+
             # p_time
             ["11:00"   , "2016-06-30T11:00:00"],
             ["11:00:05", "2016-06-30T11:00:05"],

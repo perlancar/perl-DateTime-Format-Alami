@@ -64,6 +64,11 @@ test_datetime_format_alami(
             ["in 2 mins 3 secs", "2016-06-30T00:02:03"],
             ["2 day ago"       , "2016-06-28T00:00:00"], # test: plural but no -s
 
+            # p_which_dow
+            ["this monday", "2016-06-27T00:00:00"],
+            ["last monday", "2016-06-20T00:00:00"],
+            ["next mon"   , "2016-07-04T00:00:00"], # test: abbrev
+
             # p_time
             ["11:00"      , "2016-06-30T11:00:00"],
             ["11:00:05 am", "2016-06-30T11:00:05"],

@@ -36,6 +36,14 @@ sub w_oct       { ["october", "oct"] }
 sub w_nov       { ["november", "nov"] }
 sub w_dec       { ["december", "dec"] }
 
+sub w_monday    { ["monday", "mon"] }
+sub w_tuesday   { ["tuesday", "tue"] }
+sub w_wednesday { ["wednesday", "wed"] }
+sub w_thursday  { ["thursday", "thu"] }
+sub w_friday    { ["friday", "fri"] }
+sub w_saturday  { ["saturday", "sat"] }
+sub w_sunday    { ["sunday", "sun"] }
+
 sub p_now          { "(?:(?:(?:right|just) \\s+ )?now|immediately)" }
 sub p_today        { "(?:today|this \\s+ day)" }
 sub p_tomorrow     { "(?:tomorrow|tom)" }
@@ -59,7 +67,17 @@ sub p_dateymd      { join(
 sub p_dur_ago      { "<o_dur> \\s+ (?:ago)" }
 sub p_dur_later    { "<o_dur> \\s+ (?:later) | in \\s+ <o_dur>" }
 
-sub o_date         { "(?: <p_today>|<p_tomorrow>|<p_yesterday>|<p_dateymd>)" }
+sub p_which_dow    { join(
+    "",
+    '(?{ $DateTime::Format::Alami::_offset = 0 })',
+    "(?:",
+    '  (?: (?:last \s+)(?{ local $DateTime::Format::Alami::_offset = -1 }) | (?:next \s+)(?{ local $DateTime::Format::Alami::_offset = 1 }) | (?:this \s+)?)',
+    '  <o_dow>',
+    ")",
+    '(?{ $DateTime::Format::Alami::m->{offset} = $DateTime::Format::Alami::_offset })',
+)}
+
+sub o_date         { "(?: <p_which_dow>|<p_today>|<p_tomorrow>|<p_yesterday>|<p_dateymd>)" }
 sub o_ampm         { "(?: am|pm)" }
 sub p_time         { "(?: <o_hour>[:.]<o_minute>(?: [:.]<o_second>)? \\s* <o_ampm>?)" } # XXX am/pm
 sub p_date_time    { "(?:<o_date> \\s+ (?:(?:on|at) \\s+)? <p_time>)" }
@@ -108,6 +126,9 @@ List of known date/time expressions:
  may 28, 2016
  5/28/2016
  5-28-16
+
+ # p_which_dow
+ (this|last|next) monday
 
  # p_time
  2pm

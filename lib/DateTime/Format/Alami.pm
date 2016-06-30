@@ -11,6 +11,7 @@ use Log::Any::IfLOG '$log';
 use Role::Tiny;
 
 my @short_mons = qw(jan feb mar apr may jun jul aug sep oct nov dec);
+my @dow = qw(monday tuesday wednesday thursday friday saturday sunday);
 
 requires 'o_num';
 requires '_parse_num';
@@ -24,6 +25,7 @@ requires 'w_minute';
 requires 'w_second';
 
 requires "w_$_" for @short_mons;
+requires "w_$_" for @dow;
 
 requires 'p_now';
 requires 'p_today';
@@ -33,6 +35,7 @@ requires 'p_dateymd';
 requires 'o_date';
 requires 'p_dur_ago';
 requires 'p_dur_later';
+requires 'p_which_dow';
 requires 'p_time';
 requires 'p_date_time';
 
@@ -89,7 +92,7 @@ sub new {
         my $nl = $ENV{DEBUG} ? "\n" : "";
         my $re_dt = join(
             "",
-            "(?&top)", $nl,
+            "((?&top))", $nl,
             #"(?&p_dateymd)", $nl, # testing
             "(?(DEFINE)", $nl,
             "(?<top>", join("|",
@@ -123,6 +126,17 @@ sub new {
                 my $meth = "w_$m";
                 for (@{ $self->$meth }) {
                     $maps->{months}{$_} = $i;
+                }
+            }
+        }
+        # day-of-week names -> num (monday=1, sunday=7)
+        {
+            my $i = 0;
+            for my $m (@dow) {
+                ++$i;
+                my $meth = "w_$m";
+                for (@{ $self->$meth }) {
+                    $maps->{dow}{$_} = $i;
                 }
             }
         }
@@ -167,7 +181,7 @@ sub parse_datetime {
     while (1) {
         $o->_reset;
         $m = {};
-        $str =~ /($re)/go or last;
+        $str =~ /$re/g or last;
         $o->{_dt}->truncate(to=>'day') unless $o->{_uses_time};
         my $res = {
             verbatim => $1,
@@ -183,7 +197,7 @@ sub parse_datetime {
         last if $opts->{returns} eq 'first';
     }
 
-    die "Can't parse date" unless @res;
+    die "Can't parse date '$str'" unless @res;
 
     @res = ($res[-1]) if $opts->{returns} eq 'last';
 
@@ -243,7 +257,7 @@ sub parse_datetime_duration {
     while (1) {
         $o->_reset_dur;
         $m = {};
-        $str =~ /($re)/go or last;
+        $str =~ /($re)/g or last;
         my $res = {
             verbatim => $1,
             pattern => $o->{_pat},
@@ -316,6 +330,14 @@ sub o_monthname {
     "(?:" . join(
         "|",
         (map {my $meth="w_$_"; @{ $self->$meth }} @short_mons)
+    ) . ")";
+}
+
+sub o_dow {
+    my $self = shift;
+    "(?:" . join(
+        "|",
+        (map {my $meth="w_$_"; @{ $self->$meth }} @dow)
     ) . ")";
 }
 
@@ -465,6 +487,23 @@ sub a_dateymd {
         no strict 'refs';
         my $maps = ${ ref($self) . '::MAPS' };
         $self->{_dt}->set_month($maps->{months}{lc $m->{o_monthname}});
+    }
+}
+
+sub a_which_dow {
+    no strict 'refs';
+
+    my ($self, $m) = @_;
+    $self->a_today;
+    my $dow_num = $self->{_dt}->day_of_week;
+
+    my $maps = ${ ref($self) . '::MAPS' };
+    my $wanted_dow_num = $maps->{dow}{lc $m->{o_dow} };
+
+    $self->{_dt}->add(days => ($wanted_dow_num-$dow_num));
+
+    if ($m->{offset}) {
+        $self->{_dt}->add(days => (7*$m->{offset}));
     }
 }
 

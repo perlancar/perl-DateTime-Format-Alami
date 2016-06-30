@@ -36,6 +36,14 @@ sub w_oct       { ["oktober", "okt"] }
 sub w_nov       { ["november", "nopember", "nov", "nop"] }
 sub w_dec       { ["desember", "des"] }
 
+sub w_monday    { ["senin", "sen"] }
+sub w_tuesday   { ["selasa", "sel"] }
+sub w_wednesday { ["rabu", "rab"] }
+sub w_thursday  { ["kamis", "kam"] }
+sub w_friday    { ["jumat", "jum'at", "jum"] }
+sub w_saturday  { ["sabtu", "sab"] }
+sub w_sunday    { ["minggu", "min"] }
+
 sub p_now            { "(?:saat \\s+ ini|sekarang|skrg?)" }
 sub p_today          { "(?:hari \\s+ ini)" }
 sub p_tomorrow       { "(?:b?esok|bsk)" }
@@ -56,7 +64,17 @@ sub p_dateymd        { join(
 sub p_dur_ago        { "<o_dur> \\s+ (?:(?:(?:yang|yg) \\s+)?lalu|tadi|td|yll?)" }
 sub p_dur_later      { "<o_dur> \\s+ (?:(?:(?:yang|yg) \\s+)?akan \\s+ (?:datang|dtg)|yad|lagi|lg)" }
 
-sub o_date           { "(?: <p_today>|<p_tomorrow>|<p_yesterday>|<p_dateymd>)" }
+sub p_which_dow    { join(
+    "",
+    '(?{ $DateTime::Format::Alami::_offset = 0 })',
+    "(?:",
+    '  <o_dow>',
+    '  (?: (?:\s+ (?:(?:minggu|mgg|mg)\s+)? (?:lalu))(?{ local $DateTime::Format::Alami::_offset = -1 }) | (?:\s+ (?:(?:minggu|mgg|mg)\s+)? (?:depan|dpn))(?{ local $DateTime::Format::Alami::_offset = 1 }) | (?:\s+ (?:(?:minggu|mgg|mg)\s+)? ini)?)',
+    ")",
+    '(?{ $DateTime::Format::Alami::m->{offset} = $DateTime::Format::Alami::_offset })',
+)}
+
+sub o_date           { "(?: <p_which_dow>|<p_today>|<p_tomorrow>|<p_yesterday>|<p_dateymd>)" }
 sub p_time           { "(?: <o_hour>[:.]<o_minute>(?: [:.]<o_second>)?)" }
 sub p_date_time      { "(?:<o_date> \\s+ (?:(?:pada \\s+)? (jam|j|pukul|pkl?)\\s*)? <p_time>)" }
 
@@ -104,6 +122,9 @@ List of known date/time expressions:
  28 mei 2016
  28-5-2016
  28-5-16
+
+ # p_which_dow
+ senin (minggu|mgg)? (ini|lalu|depan)
 
  # p_time
  (pukul|jam)? 10.00
