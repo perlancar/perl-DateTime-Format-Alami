@@ -128,6 +128,10 @@ sub new {
         }
         ${"$class\::MAPS"} = $maps;
     }
+
+    # _time_zone is old name (<= 0.11) will be removed later
+    $self->{time_zone} //= $self->{_time_zone};
+
     $self;
 }
 
@@ -154,7 +158,7 @@ sub parse_datetime {
     #$opts->{prefers} //= 'nearest';
     $opts->{returns} //= 'first';
 
-    local $self->{_time_zone} = $opts->{time_zone} if $opts->{time_zone};
+    local $self->{time_zone} = $opts->{time_zone} if $opts->{time_zone};
 
     my $re = ${ref($self).'::RE_DT'};
 
@@ -413,7 +417,7 @@ sub _today_if_unset {
 sub a_now {
     my $self = shift;
     $self->{_dt} = DateTime->now(
-        (time_zone => $self->{_time_zone}) x !!defined($self->{_time_zone}),
+        (time_zone => $self->{time_zone}) x !!defined($self->{time_zone}),
     );
     $self->{_uses_time} = 1;
 }
@@ -421,7 +425,7 @@ sub a_now {
 sub a_today {
     my $self = shift;
     $self->{_dt} = DateTime->today(
-        (time_zone => $self->{_time_zone}) x !!defined($self->{_time_zone}),
+        (time_zone => $self->{time_zone}) x !!defined($self->{time_zone}),
     );
     $self->{_uses_time} = 0;
 }
