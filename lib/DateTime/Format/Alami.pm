@@ -139,10 +139,15 @@ sub _reset {
 }
 
 sub parse_datetime {
+    # we require DateTime here, for all the a_* methods
     require DateTime;
+
     no strict 'refs';
 
     my ($self, $str, $opts) = @_;
+
+    # allow calling as static method
+    unless (ref $self) { $self = $self->new }
 
     $opts //= {};
     $opts->{format} //= 'DateTime';
@@ -174,7 +179,7 @@ sub parse_datetime {
         last if $opts->{returns} eq 'first';
     }
 
-    return undef unless @res;
+    die "Can't parse date" unless @res;
 
     @res = ($res[-1]) if $opts->{returns} eq 'last';
 
@@ -212,9 +217,16 @@ sub _reset_dur {
 }
 
 sub parse_datetime_duration {
+    # we require DateTime here, for all the adur_* methods
+    require DateTime;
+    require DateTime::Duration;
+
     no strict 'refs';
 
     my ($self, $str, $opts) = @_;
+
+    # allow calling as static method
+    unless (ref $self) { $self = $self->new }
 
     $opts //= {};
     $opts->{format}  //= 'Duration';
@@ -251,14 +263,12 @@ sub parse_datetime_duration {
         last if $opts->{returns} eq 'first';
     }
 
-    return undef unless @res;
+    die "Can't parse duration" unless @res;
 
     @res = ($res[-1]) if $opts->{returns} eq 'last';
 
     # XXX support returns largest, smallest, all_sorted
     if ($opts->{returns} =~ /\A(?:all_sorted|largest|smallest)\z/) {
-        require DateTime;
-        require DateTime::Duration;
         my $base_dt = DateTime->now;
         # sort from smallest to largest
         @res = sort {
@@ -387,7 +397,6 @@ sub _parse_dur {
             $args{years} = $n;
         }
     }
-    require DateTime::Duration;
     DateTime::Duration->new(%args);
 }
 
@@ -499,21 +508,33 @@ sub a_date_time {
 
 =head1 SYNOPSIS
 
-Use English:
+For English:
 
  use DateTime::Format::Alami::EN;
  my $parser = DateTime::Format::Alami::EN->new();
- my $dt;
- $dt = $parser->parse_datetime("2 hours 13 minutes from now");
- $dt = $parser->parse_datetime("yesterday");
+ my $dt = $parser->parse_datetime("2 hours 13 minutes from now");
 
-use Indonesian:
+Or you can also call as class method:
+
+ my $dt = DateTime::Format::Alami::EN->parse_datetime("yesterday");
+
+To parse duration:
+
+ my $dtdur = DateTime::Format::Alami::EN->parse_datetime_duration("2h"); # 2 hours
+
+For Indonesian:
 
  use DateTime::Format::Alami::ID;
  my $parser = DateTime::Format::Alami::ID->new();
- my $dt;
- $dt = $parser->parse_datetime("5 jam lagi");
- $dt = $parser->parse_datetime("hari ini");
+ my $dt = $parser->parse_datetime("5 jam lagi");
+
+Or you can also call as class method:
+
+ my $dt = DateTime::Format::Alami::ID->parse_datetime("hari ini");
+
+To parse duration:
+
+ my $dtdur = DateTime::Format::Alami::ID->parse_datetime_duration("2h"); # 2 days
 
 
 =head1 DESCRIPTION
@@ -604,8 +625,8 @@ Constructor. You actually must instantiate subclass instead.
 
 =head2 parse_datetime($str[ , \%opts ]) => obj
 
-Parse/extract date/time expression in C<$str>. Return undef if expression cannot
-be parsed. Otherwise return L<DateTime> object (or string/number if C<format>
+Parse/extract date/time expression in C<$str>. Die if expression cannot be
+parsed. Otherwise return L<DateTime> object (or string/number if C<format>
 option is C<verbatim>/C<epoch>, or hash if C<format> option is C<combined>) or
 array of objects/strings/numbers (if C<returns> option is C<all>/C<all_cron>).
 
@@ -659,8 +680,8 @@ instead of a single result, even if there is only a single actual result.
 
 =head2 parse_datetime_duration($str[ , \%opts ]) => obj
 
-Parse/extract duration expression in C<$str>. Return undef if expression cannot
-be parsed. Otherwise return L<DateTime::Duration> object (or string/number if
+Parse/extract duration expression in C<$str>. Die if expression cannot be
+parsed. Otherwise return L<DateTime::Duration> object (or string/number if
 C<format> option is C<verbatim>/C<seconds>, or hash if C<format> option is
 C<combined>) or array of objects/strings/numbers (if C<returns> option is
 C<all>/C<all_sorted>).
