@@ -61,6 +61,12 @@ sub p_dateymd        { join(
     '(?{ delete $DateTime::Format::Alami::m->{o_yearint} unless $DateTime::Format::Alami::_has_year })',
 )}
 
+sub p_dateym        { join(
+    "",
+    '(?: <o_monthname> )',
+    '(?: (?:\s*[,/-]?\s* <o_year4int> | \s*\'<o_year2int>\\b) (?{ local $DateTime::Format::Alami::_has_year = $DateTime::Format::Alami::_has_year + 1 }) )',
+)}
+
 sub p_dur_ago        { "<o_dur> \\s+ (?:(?:(?:yang|yg) \\s+)?lalu|tadi|td|yll?)" }
 sub p_dur_later      { "<o_dur> \\s+ (?:(?:(?:yang|yg) \\s+)?akan \\s+ (?:datang|dtg)|yad|lagi|lg)" }
 
@@ -122,6 +128,11 @@ List of known date/time expressions:
  28 mei 2016
  28-5-2016
  28-5-16
+
+ # p_dateym
+ apr 2017
+ mei-2018
+ jun '17
 
  # p_which_dow
  senin (minggu|mgg)? (ini|lalu|depan)

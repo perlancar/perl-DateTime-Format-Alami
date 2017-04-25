@@ -32,6 +32,7 @@ requires 'p_today';
 requires 'p_yesterday';
 requires 'p_tomorrow';
 requires 'p_dateymd';
+requires 'p_dateym';
 requires 'o_date';
 requires 'p_dur_ago';
 requires 'p_dur_later';
@@ -327,6 +328,10 @@ sub o_dayint { "(?:[12][0-9]|3[01]|0?[1-9])" }
 
 sub o_monthint { "(?:0?[1-9]|1[012])" }
 
+sub o_year2int { "(?:[0-9]{2})" }
+
+sub o_year4int { "(?:[0-9]{4})" }
+
 sub o_yearint { "(?:[0-9]{4}|[0-9]{2})" }
 
 sub o_hour { "(?:[0-9][0-9]?)" }
@@ -477,13 +482,14 @@ sub a_tomorrow {
 sub a_dateymd {
     my ($self, $m) = @_;
     $self->a_today;
-    if (defined $m->{o_yearint}) {
+    my $y0 = $m->{o_yearint} // $m->{o_year4int} // $m->{o_year2int};
+    if (defined $y0) {
         my $year;
-        if (length($m->{o_yearint}) == 2) {
+        if (length($y0) == 2) {
             my $start_of_century_year = int($self->{_dt}->year / 100) * 100;
-            $year = $start_of_century_year + $m->{o_yearint};
+            $year = $start_of_century_year + $y0;
         } else {
-            $year = $m->{o_yearint};
+            $year = $y0;
         }
         $self->{_dt}->set_year($year);
     }
@@ -498,6 +504,13 @@ sub a_dateymd {
         my $maps = ${ ref($self) . '::MAPS' };
         $self->{_dt}->set_month($maps->{months}{lc $m->{o_monthname}});
     }
+}
+
+sub a_dateym {
+    my ($self, $m) = @_;
+    $m->{o_dayint} = 1;
+    $self->a_dateymd($m);
+    delete $m->{o_dayint};
 }
 
 sub a_which_dow {

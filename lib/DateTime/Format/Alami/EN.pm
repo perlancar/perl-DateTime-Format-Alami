@@ -60,6 +60,12 @@ sub p_dateymd      { join(
     '(?{ delete $DateTime::Format::Alami::m->{o_yearint} unless $DateTime::Format::Alami::_has_year })',
 )}
 
+sub p_dateym      { join(
+    "",
+    '(?: <o_monthname> )',
+    '(?:\s*[,/-]?\s* <o_year4int> | \s*\'<o_year2int>)',
+)}
+
 sub p_dur_ago      { "<o_dur> \\s+ (?:ago)" }
 sub p_dur_later    { "<o_dur> \\s+ (?:later) | in \\s+ <o_dur>" }
 
@@ -122,6 +128,11 @@ List of known date/time expressions:
  may 28, 2016
  5/28/2016
  5-28-16
+
+ # p_dateym
+ apr 2017
+ may-2018
+ jun '17
 
  # p_which_dow
  (this|last|next) monday
