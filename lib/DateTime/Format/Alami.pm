@@ -6,7 +6,7 @@ package DateTime::Format::Alami;
 use 5.014000;
 use strict;
 use warnings;
-use Log::Any::IfLOG '$log';
+use Log::ger;
 
 use Role::Tiny;
 
