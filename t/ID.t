@@ -64,8 +64,11 @@ test_datetime_format_alami(
             ["mei '18"  , "2018-05-01T00:00:00"],
 
             # p_dur_ago, p_dur_later
-            ["1 hari lagi"     , "2016-07-01T00:00:00"],
-            ["2 hari yang lalu", "2016-06-28T00:00:00"],
+            ["1 hari lagi"         , "2016-07-01T00:00:00"],
+            ["2 hari yg akan dtg"  , "2016-07-02T00:00:00"],
+            ["dalam 2 hari"        , "2016-07-02T00:00:00"],
+            ["2 hari dari sekarang", "2016-07-02T00:00:00"],
+            ["2 hari yang lalu"    , "2016-06-28T00:00:00"],
 
             # p_which_dow
             ["senin ini"         , "2016-06-27T00:00:00"],
