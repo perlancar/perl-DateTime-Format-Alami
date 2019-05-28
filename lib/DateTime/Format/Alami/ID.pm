@@ -68,7 +68,7 @@ sub p_dateym        { join(
 )}
 
 sub p_dur_ago        { "<o_dur> \\s+ (?:(?:(?:yang|yg) \\s+)?lalu|tadi|td|yll?)" }
-sub p_dur_later      { "<o_dur> \\s+ (?:(?:(?:yang|yg) \\s+)?akan \\s+ (?:datang|dtg)|yad|lagi|lg)" }
+sub p_dur_later      { "<o_dur> \\s+ (?: (?:(?:(?:yang|yg) \\s+)?akan \\s+ (?:datang|dtg)|yad|lagi|lg) | (?:(?:dari|dr) \\s+ (?:sekarang|skrn?g))) | (?:dalam|dlm) \\s+ <o_dur>" }
 
 sub p_which_dow    { join(
     "",
