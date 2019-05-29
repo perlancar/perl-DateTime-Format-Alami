@@ -115,6 +115,8 @@ sub new {
             use re 'eval';
             ${"$class\::RE_DT"}  = qr/$re_dt/ix;
             ${"$class\::RE_DUR"} = qr/$re_dur/ix;
+            log_trace "Compiling regex for datetime: %s", ${"$class\::RE_DT"};
+            log_trace "Compiling regex for duration: %s", ${"$class\::RE_DUR"};
         }
     }
     unless (${"$class\::MAPS"}) {
@@ -178,7 +180,13 @@ sub parse_datetime {
     # we need /o to avoid repeated regcomp, but we need to make it work with all
     # subclasses, so we use eval() here.
     unless (defined *{ref($self).'::_code_match_dt'}) {
-        *{ref($self).'::_code_match_dt'} = eval "sub { \$_[0] =~ /(\$".ref($self)."::RE_DT)/go; \$1 }";
+        my $codestr;
+        if (log_is_trace()) {
+            $codestr = "sub { \$_[0] =~ /(\$".ref($self)."::RE_DT)/go; log_trace qq(Matches: %s), \$1; \$1 }";
+        } else {
+            $codestr = "sub { \$_[0] =~ /(\$".ref($self)."::RE_DT)/go; \$1 }";
+        }
+        *{ref($self).'::_code_match_dt'} = eval $codestr;
         die if $@;
     }
 

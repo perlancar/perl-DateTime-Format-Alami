@@ -67,7 +67,7 @@ sub p_dateym      { join(
 )}
 
 sub p_dur_ago      { "<o_dur> \\s+ (?:ago)" }
-sub p_dur_later    { "<o_dur> \\s+ (?:later) | in \\s+ <o_dur> | <o_dur> \\s+ from \\s+ now" }
+sub p_dur_later    { "(?:<o_dur> \\s+ (?:later)) | (?:in \\s+ <o_dur>) | (?:<o_dur> \\s+ from \\s+ now)" }
 
 sub p_which_dow    { join(
     "",
