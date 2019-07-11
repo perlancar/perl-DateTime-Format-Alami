@@ -1,30 +1,30 @@
-0.16    2017-07-10 (PERLANCAR)
+0.16    2017-07-10  Released-By: PERLANCAR
 
 	- No functional changes.
 
 	- Release v0.15.
 
 
-0.15    2017-07-10 (PERLANCAR)
+0.15    2017-07-10  Released-By: PERLANCAR
 
 	- No functional changes.
 
 	- Replace Log::Any with Log::ger.
 
 
-0.14    2017-04-25 (PERLANCAR)
+0.14    2017-04-25  Released-By: PERLANCAR
 
 	- Add pattern: p_dateym.
 
 
-0.13    2016-06-30 (PERLANCAR)
+0.13    2016-06-30  Released-By: PERLANCAR
 
         - No functional changes.
 
         - [build] Forgot to exclude nytprof* files/dirs from the build.
 
 
-0.12    2016-06-30 (PERLANCAR)
+0.12    2016-06-30  Released-By: PERLANCAR
 
         - Improve compliance with DateTime::Format API: allow calling
           parse_datetime() and parse_datetime_duration() as static method, and
@@ -50,7 +50,7 @@
           is currently still supported).
 
 
-0.11    2016-06-29 (PERLANCAR)
+0.11    2016-06-29  Released-By: PERLANCAR
 
         - Support parsing duration.
 
@@ -58,7 +58,7 @@
           addition to "2 hours 3 minutes".
 
 
-0.10    2016-06-28 (PERLANCAR)
+0.10    2016-06-28  Released-By: PERLANCAR
 
         - Add patterns: p_time (e.g. "10pm", "at 10:00"), p_date_time (e.g.
           "yesterday at 10pm").
@@ -70,14 +70,14 @@
           topological sorting.
 
 
-0.09    2016-05-05 (PERLANCAR)
+0.09    2016-05-05  Released-By: PERLANCAR
 
 	- No functional changes.
 
 	- [dist] Bump prereq Parse::Number::ID to 0.06 [RT#114165].
 
 
-0.08    2016-05-04 (PERLANCAR)
+0.08    2016-05-04  Released-By: PERLANCAR
 
 	- [Bugfix] Fix ordering of set_month() and set_day(), e.g. when day
 	  is 30 we cannot set month to February [RT#114108].
@@ -85,7 +85,7 @@
 	- [Test] Enable testing of H:M:D being truncated to 0 when unnecessary.
 
 
-0.07    2016-04-13 (PERLANCAR)
+0.07    2016-04-13  Released-By: PERLANCAR
 
         - Add options: time_zone, format, returns (like in Date::Extract). Now
           this module can return DateTime object as well as verbatim/original
@@ -102,40 +102,40 @@
         - [doc] Mention more related modules.
 
 
-0.06    2016-04-06 (PERLANCAR)
+0.06    2016-04-06  Released-By: PERLANCAR
 
 	- Use /x and /i for the whole regex, fixes/updates (a_tomorrow()
 	  was missing), add test suite.
 
 
-0.05    2014-10-03 (PERLANCAR)
+0.05    2014-10-03  Released-By: PERLANCAR
 
         - No functional changes.
 
         - Some POD rewording.
 
 
-0.04    2014-10-03 (PERLANCAR)
+0.04    2014-10-03  Released-By: PERLANCAR
 
         - Use /o modifier for faster speed.
 
         - Rebuild using updated modules to create more compact $RE & $MAPS.
 
 
-0.03    2014-10-03 (PERLANCAR)
+0.03    2014-10-03  Released-By: PERLANCAR
 
         - No functional changes.
 
         - [build] Forgot to precompute $MAPS.
 
 
-0.02    2014-10-03 (PERLANCAR)
+0.02    2014-10-03  Released-By: PERLANCAR
 
         - Add FAQ item about the name.
 
         - Add pattern: date_wo_year (date without year), e.g. May 28, 5/28.
 
 
-0.01    2014-10-02 (PERLANCAR)
+0.01    2014-10-02  Released-By: PERLANCAR
 
         - First release.
