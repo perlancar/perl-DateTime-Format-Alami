@@ -613,10 +613,6 @@ To parse duration:
 
 =head1 DESCRIPTION
 
-B<WARNING:> Currently this module is quite broken. Please use more mature
-alternatives like L<DateTime::Format::Natural> and
-L<DateTime::Format::Flexible>.
-
 This class parses human/natural date/time/duration string and returns
 L<DateTime> (or L<DateTime::Duration>) object. Currently it supports English and
 Indonesian. The goal of this module is to make it easier to add support for
