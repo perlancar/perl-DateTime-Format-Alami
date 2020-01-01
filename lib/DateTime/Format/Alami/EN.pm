@@ -152,6 +152,13 @@ List of known duration expressions:
  1 year 2 months 3 weeks 4 days 5 hours 6 minutes 7 seconds
 
 
+=head1 DESCRIPTION
+
+B<WARNING:> Currently this module is quite broken. Please use more mature
+alternatives like L<DateTime::Format::Natural> and
+L<DateTime::Format::Flexible>.
+
+
 =head1 SEE ALSO
 
 L<DateTime::Format::Natural>

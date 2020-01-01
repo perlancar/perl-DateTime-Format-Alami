@@ -151,6 +151,12 @@ List of known duration expressions:
  1 tahun 2 bulan 3 minggu 4 hari 5 jam 6 menit 7 detik
 
 
+=head1 DESCRIPTION
+
+B<WARNING:> Currently this module is quite broken. Please use more mature
+alternatives like L<DateTime::Format::Natural> and
+L<DateTime::Format::Flexible>.
+
 =head1 SEE ALSO
 
 L<DateTime::Format::Indonesian>
